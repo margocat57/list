@@ -1,0 +1,35 @@
+digraph G{
+ rankdir=LR;
+ splines=ortho;
+ graph [bgcolor="#1E2A36"];
+ info[shape="record", style="filled", fillcolor="#82898F", color = "#ffe766", label="head = 1 | tail = 10 | free = 0"];
+ 1[shape="record", style="filled", fillcolor="#82898F", color = "#FFFFFF", label="phys idx = 1 | elem = 11.00 | {prev = 0 | next = 2} "];
+ 2[shape="record", style="filled", fillcolor="#82898F", color = "#FFFFFF", label="phys idx = 2 | elem = 20.00 | {prev = 1 | next = 3} "];
+ 3[shape="record", style="filled", fillcolor="#82898F", color = "#FFFFFF", label="phys idx = 3 | elem = 30.00 | {prev = 2 | next = 9} "];
+ 4[shape="record", style="filled", fillcolor="#82898F", color = "#FFFFFF", label="phys idx = 4 | elem = 40.00 | {prev = 8 | next = 5} "];
+ 5[shape="record", style="filled", fillcolor="#82898F", color = "#FFFFFF", label="phys idx = 5 | elem = 50.00 | {prev = 4 | next = 6} "];
+ 6[shape="record", style="filled", fillcolor="#82898F", color = "#FFFFFF", label="phys idx = 6 | elem = 66.00 | {prev = 5 | next = 10} "];
+ 7[shape="record", style="filled", fillcolor="#82898F", color = "#FFFFFF", label="phys idx = 7 | elem = 35.00 | {prev = 9 | next = 8} "];
+ 8[shape="record", style="filled", fillcolor="#82898F", color = "#FFFFFF", label="phys idx = 8 | elem = 36.00 | {prev = 7 | next = 4} "];
+ 9[shape="record", style="filled", fillcolor="#82898F", color = "#FFFFFF", label="phys idx = 9 | elem = 32.00 | {prev = 3 | next = 7} "];
+ 10[shape="record", style="filled", fillcolor="#82898F", color = "#FFFFFF", label="phys idx = 10 | elem = 70.00 | {prev = 6 | next = 0} "];
+ info -> 1 [style="invis", weight=500]
+ 1 -> 2 [style="invis", weight=500]
+ 2 -> 3 [style="invis", weight=500]
+ 3 -> 4 [style="invis", weight=500]
+ 4 -> 5 [style="invis", weight=500]
+ 5 -> 6 [style="invis", weight=500]
+ 6 -> 7 [style="invis", weight=500]
+ 7 -> 8 [style="invis", weight=500]
+ 8 -> 9 [style="invis", weight=500]
+ 9 -> 10 [style="invis", weight=500]
+ 1 -> 2 [arrowhead = "vee", color = "#79A0C1", penwidth = 1.25, arrowsize = 1.5]
+ 2 -> 3 [arrowhead = "vee", color = "#79A0C1", penwidth = 1.25, arrowsize = 1.5]
+ 3 -> 9 [arrowhead = "vee", color = "#79A0C1", penwidth = 1.25, arrowsize = 1.5]
+ 4 -> 5 [arrowhead = "vee", color = "#79A0C1", penwidth = 1.25, arrowsize = 1.5]
+ 5 -> 6 [arrowhead = "vee", color = "#79A0C1", penwidth = 1.25, arrowsize = 1.5]
+ 6 -> 10 [arrowhead = "vee", color = "#79A0C1", penwidth = 1.25, arrowsize = 1.5]
+ 7 -> 8 [arrowhead = "vee", color = "#79A0C1", penwidth = 1.25, arrowsize = 1.5]
+ 8 -> 4 [arrowhead = "vee", color = "#79A0C1", penwidth = 1.25, arrowsize = 1.5]
+ 9 -> 7 [arrowhead = "vee", color = "#79A0C1", penwidth = 1.25, arrowsize = 1.5]
+}
