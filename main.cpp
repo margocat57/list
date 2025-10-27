@@ -11,14 +11,21 @@ int main(){
     add_elem(&l1, 50, 4);
     add_elem(&l1, 60, 5);
     add_elem(&l1, 35, 3);
+    list_dump_func(&l1, "l1_dump_1", "log.htm", "After adding35");
     add_elem(&l1, 36, 7);
+    list_dump_func(&l1, "l1_dump_2", "log.htm", "After adding36");
     add_elem(&l1, 32, 3);
-    generate_dot_png_file(&l1, "l1_dump_new");
+    list_dump_func(&l1, "l1_dump_3", "log.htm", "After adding32");
     del_elem(&l1, 6);
+    list_dump_func(&l1, "l1_dump_4", "log.htm", "After deleting 6st elem");
     del_elem(&l1, 1);
+    list_dump_func(&l1, "l1_dump_5", "log.htm", "After deleting 1st elem");
     add_elem(&l1, 11, 0);
+    list_dump_func(&l1, "l1_dump_6", "log.htm", "After adding 11");
     add_elem(&l1, 66, 5);
+    list_dump_func(&l1, "l1_dump_7", "log.htm", "After adding66");
     add_elem(&l1, 70, 6);
+    list_dump_func(&l1, "l1_dump_8", "log.htm", "After adding70");
     //del_elem(&l1, 10);
 
     // del_elem(&l1, 1);

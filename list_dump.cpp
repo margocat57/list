@@ -1,42 +1,54 @@
 #include "list_struct.h"
+#include "list_dump.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-void list_dump_html(list* list, const char* file_name, const char* debug_msg){
+static char* generate_dot_png_file(const list* list, const char* name_file);
+
+static void list_dump_html(const list* list, const char* output, const char* img, const char* debug_msg);
+
+void list_dump_func(const list* list, const char* input_file, const char* output_file, const char* debug_msg){
+    char* img = generate_dot_png_file(list, input_file);
+    if(img){
+        list_dump_html(list, output_file, img, debug_msg);
+    }
+}
+
+static void list_dump_html(const list* list, const char* output, const char* img, const char* debug_msg){
     static int launch_num = 0;
-    FILE* html_output = fopen(file_name, "a+");
+    FILE* html_output = fopen(output, "a+");
     if(!html_output){
         fprintf(stderr, "Can't open html file\n");
         return;
     }
     if(launch_num == 0){
         launch_num++;
-        fprintf(html_output, "<pre>\n");
+        fprintf(html_output, "<pre style=\"background-color: #1E2A36; color: #FFFFFF;\">\n");
     }
     fprintf(html_output, "%s\n" ,debug_msg);
+    fprintf(html_output, "<img src=\"%s\" alt=\"Array visualization\" width=\"95%%\">\n", img);
     fprintf(html_output, "\n");
-    fprintf(html_output, "<img src=\"\" alt=\"Array visualization\" width=\"10%\">\n");
     fclose(html_output);
 }
 
-void generate_dot_png_file(list* list, const char* name_file){
+static char* generate_dot_png_file(const list* list, const char* name_file){
     char dot_filename[100] = {0};
     char png_filename[100] = {0};
     char command[200]      = {0};
 
     if(snprintf(dot_filename, sizeof(dot_filename), "%s.dot", name_file) == -1){
         fprintf(stderr, "Can't parse name of dot file\n");
-        return;
+        return NULL;
     }
     if(snprintf(png_filename, sizeof(png_filename), "%s.png", name_file) == -1){
         fprintf(stderr, "Can't parse name of png file\n");
-        return;
+        return NULL;
     }
 
     FILE* dot_file = fopen(dot_filename, "w");
     if(!dot_file){
         fprintf(stderr, "Can't open dot file\n");
-        return;
+        return NULL;
     }
 
     fprintf(dot_file, "digraph G{\n");
@@ -44,13 +56,13 @@ void generate_dot_png_file(list* list, const char* name_file){
     fprintf(dot_file, " splines=ortho;\n");
     fprintf(dot_file, " graph [bgcolor=\"#1E2A36\"];\n");
     fprintf(dot_file, " info[shape=\"record\", style=\"filled\", fillcolor=\"#4A5257\", color = \"#FFF4CC\", penwidth=2.0, label=\"head = %d | tail = %d | free = %d\"];\n", list->head, list->tail, list->free);
-    for(int idx = 1; idx < list->num_of_elem; idx++){
+    for(int idx = 1; idx < (int)list->num_of_elem; idx++){
         if(list->data[idx]==POISON){
             continue;
         }
         fprintf(dot_file, " %d[shape=\"record\", style=\"filled\", fillcolor=\"#82898F\", color = \"#FFFFFF\", penwidth=2.0, label=\"phys idx = %d | elem = %.2lf | {prev = %d | next = %d}\"];\n", idx ,idx, list->data[idx], list->pred[idx], list->next[idx]);
     }
-    for(int idx = 1; idx < list->num_of_elem; idx++){
+    for(int idx = 1; idx < (int)list->num_of_elem; idx++){
         if(list->data[idx]!=POISON){
             continue;
         }
@@ -59,7 +71,7 @@ void generate_dot_png_file(list* list, const char* name_file){
 
     // connect normal elements
     int last_norm_idx = 0;
-    for(int idx = 1; idx < list->num_of_elem; idx++){
+    for(int idx = 1; idx < (int)list->num_of_elem; idx++){
         if(list->data[idx]!=POISON){
             if(last_norm_idx == 0){
                 last_norm_idx = idx;
@@ -73,7 +85,7 @@ void generate_dot_png_file(list* list, const char* name_file){
 
     // connect poison elements
     int poison_idx = 0;
-    for(int idx = 1; idx < list->num_of_elem; idx++){
+    for(int idx = 1; idx < (int)list->num_of_elem; idx++){
         if(list->data[idx]==POISON){
             if(poison_idx == 0){
                 poison_idx = idx;
@@ -86,7 +98,7 @@ void generate_dot_png_file(list* list, const char* name_file){
     }
 
     // connect next elements
-    for(int idx = 1; idx < list->num_of_elem; idx++){
+    for(int idx = 1; idx < (int)list->num_of_elem; idx++){
         if(list->data[idx]==POISON){
             continue;
         }
@@ -102,10 +114,12 @@ void generate_dot_png_file(list* list, const char* name_file){
 
     if(snprintf(command, sizeof(command) ,"dot -Tpng %s -o %s", dot_filename, png_filename) == -1){
         fprintf(stderr, "Can't parse command to do\n");
-        return;
+        return NULL;
     }
     int mistake = system(command);
     if(mistake != 0){
         fprintf(stderr, "System can't do parsing command, error code %d\n", mistake);
+        return NULL;
     }
+    return png_filename;
 }

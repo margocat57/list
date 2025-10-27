@@ -3,8 +3,6 @@
 #include <string.h>
 #include "list_struct.h"
 
-void generate_dot_png_file(list* list, const char* name_file);
-
-void list_dump_html(list* list, const char* file_name, const char* debug_msg);
+void list_dump_func(const list* list, const char* input_file, const char* output_file, const char* debug_msg);
 
 #endif // LIST_DUMP_H

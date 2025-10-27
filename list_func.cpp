@@ -39,9 +39,9 @@ list list_ctor(size_t num_of_elem){
 
     list1.next[0] = 0;
     list1.pred[0] = 0;
-    for(int idx = 1; idx < num_of_elem; idx++){
+    for(int idx = 1; idx < (int)num_of_elem; idx++){
         list1.data[idx] = POISON;
-        list1.next[idx] = (idx < num_of_elem - 1) ? idx + 1 : 0;
+        list1.next[idx] = (idx < (int)num_of_elem - 1) ? idx + 1 : 0;
         list1.pred[idx] = -1;
     }
     list1.head = 0;
@@ -67,13 +67,13 @@ list_err_t list_verify(const list* list){
     CHECK_AND_RET_MISTAKE(list->num_of_elem == 0 || list->num_of_elem >= (size_t)(0.8 * (double)SIZE_MAX), 
                         INCORR_DATA_SIZE, "INCORRECT DATA SIZE\n");
 
-    CHECK_AND_RET_MISTAKE(list->head < 0 || list->head >= list->num_of_elem, 
+    CHECK_AND_RET_MISTAKE(list->head < 0 || list->head >= (int)list->num_of_elem, 
                         INCORR_HEAD, "INCORRECT HEAD VALUE\n");
 
-    CHECK_AND_RET_MISTAKE(list->tail < 0 || list->tail >= list->num_of_elem, 
+    CHECK_AND_RET_MISTAKE(list->tail < 0 || list->tail >= (int)list->num_of_elem, 
                         INCORR_TAIL, "INCORRECT TAIL VALUE\n");
 
-    CHECK_AND_RET_MISTAKE(list->free < 0 || list->free >= list->num_of_elem,
+    CHECK_AND_RET_MISTAKE(list->free < 0 || list->free >= (int)list->num_of_elem,
                         INCORR_FREE, "INCORRECT FREE VALUE\n");
 
     CHECK_AND_RET_MISTAKE(list->data[0] != POISON, NULL_ELEM_CORRUPTED, "DATA[0] ELEMENT CORRUPTED\n");
@@ -94,9 +94,9 @@ list_err_t list_verify(const list* list){
 // возвращать больше ошибок
 static list_err_t check_next(const list* list){
     int number_of_next = 0;
-    for(int data_idx = 1; data_idx < list->num_of_elem; data_idx++){
-        if(list->next[data_idx] < 0 || list->next[data_idx] >= list->num_of_elem){
-            // здесь дамп с картинкой
+    for(int data_idx = 1; data_idx < (int)list->num_of_elem; data_idx++){
+        if(list->next[data_idx] < 0 || list->next[data_idx] >= (int)list->num_of_elem){
+            list_dump_func(list, "l1_dump_mist1", "log.htm", "Next element index for data_idx element out of array");
             return INCORR_FILL_NEXT_ARRAY;
         }
 
@@ -105,7 +105,7 @@ static list_err_t check_next(const list* list){
                 continue;
             }
             fprintf(stderr, "NEXT ELEMENT FOR TAIL ELEMENT IS NOT ZERO\n");
-            // здесь дамп с картинкой
+            list_dump_func(list, "l1_dump_mist2", "log.htm", "NEXT ELEMENT FOR TAIL ELEMENT IS NOT ZERO");
             return INCORR_FILL_NEXT_ARRAY;
         }
 
@@ -114,12 +114,12 @@ static list_err_t check_next(const list* list){
                 continue;
             }
             fprintf(stderr, "For elem [%d] that is POISON next elem is not POISON\n", data_idx);
-            // здесь дамп с картинкой
+            list_dump_func(list, "l1_dump_mist3", "log.htm", "For POISON element next elem is not POISON");
             return INCORR_FILL_NEXT_ARRAY;
         }
 
         number_of_next = 0;
-        for(int next_idx = 1; next_idx < list->num_of_elem; next_idx++) {
+        for(int next_idx = 1; next_idx < (int)list->num_of_elem; next_idx++) {
             if(list->next[next_idx] == data_idx){
                 number_of_next++;
             }
@@ -130,13 +130,13 @@ static list_err_t check_next(const list* list){
                 continue;
             }
             fprintf(stderr, "Head elem [%d] has %d previous elements\n", data_idx, number_of_next);
-            // здесь дамп с картинкой
+            list_dump_func(list, "l1_dump_mist4", "log.htm", "Head element has not zero previous elements");
             return INCORR_FILL_NEXT_ARRAY;
         } 
 
         if(number_of_next != 1) {
             fprintf(stderr, "Elem [%d] has %d next elements (expected 1)\n", data_idx, number_of_next);
-            // здесь дамп с картинкой
+            list_dump_func(list, "l1_dump_mist5", "log.htm", "One of the elements has more than one next elements");
             return INCORR_FILL_NEXT_ARRAY;
         }
     }
@@ -145,9 +145,9 @@ static list_err_t check_next(const list* list){
 
 static list_err_t check_pred(const list* list){
     int number_of_prev = 0;
-    for(int data_idx = 1; data_idx < list->num_of_elem; data_idx++){
+    for(int data_idx = 1; data_idx < (int)list->num_of_elem; data_idx++){
         if((list->pred[data_idx] < 0 && list->pred[data_idx] != -1) || list->pred[data_idx] >= (int)list->num_of_elem){
-            // здесь дамп с картинкой
+            list_dump_func(list, "l1_dump_mist6", "log.htm", "Prev element index for data_idx element out of array");
             return INCORR_FILL_PRED_ARRAY;
         }
 
@@ -156,7 +156,7 @@ static list_err_t check_pred(const list* list){
                 continue;
             }
             fprintf(stderr, "PREVIOUS ELEMENT FOR HEAD ELEMENT IS NOT ZERO\n");
-            // здесь дамп с картинкой
+            list_dump_func(list, "l1_dump_mist7", "log.htm", "PREVIOUS ELEMENT FOR HEAD ELEMENT IS NOT ZERO");
             return INCORR_FILL_PRED_ARRAY;
         }
 
@@ -165,12 +165,12 @@ static list_err_t check_pred(const list* list){
                 continue;
             }
             fprintf(stderr, "For elem [%d] that is POISON previous elem is not -1\n", data_idx);
-            // здесь дамп с картинкой
+            list_dump_func(list, "l1_dump_mist8", "log.htm", "For POISON element previous elem is not -1");
             return INCORR_FILL_PRED_ARRAY;
         }
 
         number_of_prev = 0;
-        for(int prev_idx = 1; prev_idx < list->num_of_elem; prev_idx++) {
+        for(int prev_idx = 1; prev_idx < (int)list->num_of_elem; prev_idx++) {
             if(list->pred[prev_idx] == data_idx){
                 number_of_prev++;
             }
@@ -181,13 +181,13 @@ static list_err_t check_pred(const list* list){
                 continue;
             }
             fprintf(stderr, "Tail elem [%d] has %d next elements\n", data_idx, number_of_prev);
-            // здесь дамп с картинкой
+            list_dump_func(list, "l1_dump_mist9", "log.htm", "Tail elem has more than one next elements");
             return INCORR_FILL_PRED_ARRAY;
         } 
 
         if(number_of_prev != 1) {
             fprintf(stderr, "Elem [%d] has %d previous elements (expected 1)\n", data_idx, number_of_prev);
-            // здесь дамп с картинкой
+            list_dump_func(list, "l1_dump_mist10", "log.htm", "Element has more than one previous elements");
             return INCORR_FILL_PRED_ARRAY;
         }
     }
@@ -197,7 +197,7 @@ static list_err_t check_pred(const list* list){
 list_err_t add_elem(list* list, list_elem_t elem, int idx){
     list_err_t err = NO_MISTAKE;
 
-    if(idx < 0 && (idx >= list->num_of_elem && list->free != 0)){
+    if(idx < 0 && (idx >= (int)list->num_of_elem && list->free != 0)){
         fprintf(stderr, "Incorrect index %d in add function\n", idx);
         return IDX_OUT_OF_ARR;
     }
@@ -241,7 +241,7 @@ list_err_t add_elem(list* list, list_elem_t elem, int idx){
 list_err_t del_elem(list* list, int idx){
     list_err_t err = NO_MISTAKE;
 
-    if(idx <= 0 || idx >= list->num_of_elem){
+    if(idx <= 0 || idx >= (int)list->num_of_elem){
         fprintf(stderr, "Incorrect index %d in delete function\n", idx);
         return IDX_OUT_OF_ARR;
     }
@@ -296,8 +296,8 @@ static list_err_t list_realloc(list* list, size_t elem){
     }
     list->pred = list_pred_new;
 
-    for(int idx = list->num_of_elem; idx < new_size; idx++){
-        list->next[idx] = (idx < new_size - 1) ? idx + 1 : 0;
+    for(int idx = (int)list->num_of_elem; idx < (int)new_size; idx++){
+        list->next[idx] = (idx < (int)new_size - 1) ? idx + 1 : 0;
         list->pred[idx] = -1;
         list->data[idx] = POISON;
     }
