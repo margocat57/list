@@ -13,6 +13,7 @@ int main(){
     add_elem(&l1, 35, 3);
     add_elem(&l1, 36, 7);
     add_elem(&l1, 32, 3);
+    generate_dot_png_file(&l1, "l1_dump_new");
     del_elem(&l1, 6);
     del_elem(&l1, 1);
     add_elem(&l1, 11, 0);
@@ -30,7 +31,6 @@ int main(){
     // add_elem(&l1, 37, 6);
     // cлучай 36 5 спросить
     // add_elem(&l1, 45, 5);
-    gerenate_dot_png_file2(&l1, "l1_dump_new");
     list_dtor(&l1);
     // list_dump_html(&l1, "log.htm", "First try");
     return 0;

@@ -197,65 +197,41 @@ static list_err_t check_pred(const list* list){
 list_err_t add_elem(list* list, list_elem_t elem, int idx){
     list_err_t err = NO_MISTAKE;
 
-    // мы же можем вставлять после последнего когда только тогда когда список полон
     if(idx < 0 && (idx >= list->num_of_elem && list->free != 0)){
         fprintf(stderr, "Incorrect index %d in add function\n", idx);
         return IDX_OUT_OF_ARR;
     }
 
     err = list_verify(list);
-    if(err){
-        return err;
-    }
+    if(err) return err;
 
-    // проверка что массив пуст --- тогда вставляем в начало
-    if(list->head == 0 && list->tail == 0){
-        list->data[1] = elem;
-        list->pred[1] = 0;
-        list->next[1] = 0;
-        list->free = 2;
-        list->tail = 1;
-        list->head = 1; 
-        err = list_verify(list);
-        return err;
-    }
-
-    // проверка что весь массив полон 
     if(list->free == 0){
         err = list_realloc(list, list->num_of_elem * 2);
-        if(err){
-            return err;
-        }
+        if(err) return err;
         list->free = idx + 1;
     }
 
     int new_free = 0;
+    new_free = list->next[list->free];
 
-    if (idx == 0) {
-        new_free = list->next[idx + 1];
-        list -> next[idx + 1] = list -> pred[list -> next[list -> head]];
-        list -> pred[idx + 1] = 0;
-        list->head = idx + 1;
-        list -> pred[list -> next[idx+1]] = list -> head;
-        list -> data [idx + 1] = elem;
-        list->free = new_free;
-
-        err = list_verify(list);
-        return err;
+    list->data[list->free] = elem;
+    if(idx == 0){
+        list -> next[list->free] = list -> pred[list -> next[list -> head]];
+        list->head = list->free;
+    }
+    else{
+        list->next[list->free] = list->next[idx];
+        list->next[idx] = list->free;
     }
 
-    new_free = list->next[list->free];
-    list->data[list->free] = elem;
-    list->next[list->free] = list->next[idx];
-    list->next[idx] = list->free;
+    list->pred[list->free] = idx; 
     if(list->next[list->free] == 0){
-        list->pred[list->free] = idx;
         list->tail = list->free;
     }
     else{
-        list->pred[list->free] = list->pred[list->next[list->free]];
         list->pred[list->next[list->free]] = list->free;
     }
+
     list->free = new_free;
 
     err = list_verify(list);
@@ -271,9 +247,7 @@ list_err_t del_elem(list* list, int idx){
     }
 
     err = list_verify(list);
-    if(err){
-        return err;
-    }
+    if(err) return err;
 
     if(idx == 1){
         list->head = list->next[idx];
@@ -299,24 +273,29 @@ list_err_t del_elem(list* list, int idx){
 
 static list_err_t list_realloc(list* list, size_t elem){
     size_t new_size = elem + 1;
-    list->data = (list_elem_t*)realloc(list->data, sizeof(list_elem_t) * new_size);
-    if(!list->data){
+
+    list_elem_t* list_data_new = (list_elem_t*)realloc(list->data, sizeof(list_elem_t) * new_size);
+    if(!list_data_new){
         fprintf(stderr, "Can't realloc data array to edd new elem\n");
-        list_dtor(list);
         return DATA_ALLOC_ERR; 
     }
-    list->next = (int*)realloc(list->next, sizeof(int) * new_size);
-    if(!list->next){
+    list->data = list_data_new;
+
+    int* list_next_new = (int*)realloc(list->next, sizeof(int) * new_size);
+    if(!list_next_new){
         fprintf(stderr, "Can't realloc next array to edd new elem\n");
-        list_dtor(list);
         return NEXT_ALLOC_ERR; 
     }
-    list->pred = (int*)realloc(list->pred, sizeof(int) * new_size);
-    if(!list->pred){
+    list->next = list_next_new;
+
+    int* list_pred_new = (int*)realloc(list->pred, sizeof(int) * new_size);
+    if(!list_pred_new){
         fprintf(stderr, "Can't realloc pred array to edd new elem\n");
         list_dtor(list);
         return PRED_ALLOC_ERR; 
     }
+    list->pred = list_pred_new;
+
     for(int idx = list->num_of_elem; idx < new_size; idx++){
         list->next[idx] = (idx < new_size - 1) ? idx + 1 : 0;
         list->pred[idx] = -1;

@@ -3,7 +3,7 @@
 #include <string.h>
 #include "list_struct.h"
 
-void gerenate_dot_png_file(list* list, const char* name_file);
+void generate_dot_png_file(list* list, const char* name_file);
 
 void list_dump_html(list* list, const char* file_name, const char* debug_msg);
 

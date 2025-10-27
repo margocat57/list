@@ -15,12 +15,11 @@ void list_dump_html(list* list, const char* file_name, const char* debug_msg){
     }
     fprintf(html_output, "%s\n" ,debug_msg);
     fprintf(html_output, "\n");
-    // быть готовым вывести массивы но как будто они должны быть на картинке
     fprintf(html_output, "<img src=\"\" alt=\"Array visualization\" width=\"10%\">\n");
     fclose(html_output);
 }
 
-void gerenate_dot_png_file(list* list, const char* name_file){
+void generate_dot_png_file(list* list, const char* name_file){
     char dot_filename[100] = {0};
     char png_filename[100] = {0};
     char command[200]      = {0};
@@ -44,16 +43,18 @@ void gerenate_dot_png_file(list* list, const char* name_file){
     fprintf(dot_file, " rankdir=LR;\n");
     fprintf(dot_file, " splines=ortho;\n");
     fprintf(dot_file, " graph [bgcolor=\"#1E2A36\"];\n");
-    fprintf(dot_file, " info[shape=\"record\", style=\"filled\", fillcolor=\"#82898F\", color = \"#ffe766\", label=\"head = %d | tail = %d | free = %d\"];\n", list->head, list->tail, list->free);
-    for(int idx = 1; idx < list->num_of_elem; idx++){
-        if(list->data[idx]!=POISON){
-            fprintf(dot_file, " %d[shape=\"record\", style=\"filled\", fillcolor=\"#82898F\", color = \"#FFFFFF\", label=\"phys idx = %d | elem = %.2lf | {prev = %d | next = %d} \"];\n", idx ,idx, list->data[idx], list->pred[idx], list->next[idx]);
-        }
-    }
+    fprintf(dot_file, " info[shape=\"record\", style=\"filled\", fillcolor=\"#4A5257\", color = \"#FFF4CC\", penwidth=2.0, label=\"head = %d | tail = %d | free = %d\"];\n", list->head, list->tail, list->free);
     for(int idx = 1; idx < list->num_of_elem; idx++){
         if(list->data[idx]==POISON){
-            fprintf(dot_file, " %d[shape=\"record\", style=\"filled\", fillcolor=\"#82898F\", color = \"#ffe766\", label=\"phys idx = %d | elem = PZN | {prev = %d | next = %d} \"];\n", idx ,idx, list->pred[idx], list->next[idx]);
+            continue;
         }
+        fprintf(dot_file, " %d[shape=\"record\", style=\"filled\", fillcolor=\"#82898F\", color = \"#FFFFFF\", penwidth=2.0, label=\"phys idx = %d | elem = %.2lf | {prev = %d | next = %d}\"];\n", idx ,idx, list->data[idx], list->pred[idx], list->next[idx]);
+    }
+    for(int idx = 1; idx < list->num_of_elem; idx++){
+        if(list->data[idx]!=POISON){
+            continue;
+        }
+        fprintf(dot_file, " %d[shape=\"record\", style=\"filled\", fillcolor=\"#5C646B\", color = \"#ffe766\", penwidth=2.0, label=\"phys idx = %d | elem = PZN | {prev = %d | next = %d} \"];\n", idx ,idx, list->pred[idx], list->next[idx]);
     }
 
     // connect normal elements
@@ -76,7 +77,7 @@ void gerenate_dot_png_file(list* list, const char* name_file){
         if(list->data[idx]==POISON){
             if(poison_idx == 0){
                 poison_idx = idx;
-                fprintf(dot_file," info -> %d [style=\"invis\", weight=500]\n", poison_idx);
+                fprintf(dot_file," %d -> %d [style=\"invis\", weight=1000]\n", last_norm_idx, poison_idx);
                 continue;
             }
             fprintf(dot_file," %d -> %d [style=\"invis\", weight=500]\n", poison_idx, idx);
@@ -92,8 +93,10 @@ void gerenate_dot_png_file(list* list, const char* name_file){
         if(list->next[idx]==0){
             continue;
         }
-        fprintf(dot_file," %d -> %d [arrowhead = \"vee\", color = \"#79A0C1\", penwidth = 1.25, arrowsize = 1.5]\n", idx, list->next[idx]);
+        fprintf(dot_file," %d -> %d [color = \"#D4A798\", penwidth = 1, arrowsize = 0.85]\n", idx, list->next[idx]);
     }
+
+
     fprintf(dot_file,"}\n");
     fclose(dot_file);
 
