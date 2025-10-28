@@ -20,7 +20,9 @@ list list_ctor(size_t num_of_elem);
 
 list_err_t list_verify(const list* list);
 
-list_err_t add_elem(list* list, list_elem_t elem, int idx);
+list_err_t add_elem_before_idx(list* list, list_elem_t elem, int idx);
+
+list_err_t add_elem_after_idx(list* list, list_elem_t elem, int idx);
 
 list_err_t del_elem(list* list, int idx);
 

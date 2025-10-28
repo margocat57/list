@@ -23,9 +23,8 @@ enum list_mistakes{
     INCORR_TAIL            = 1 << 10,
     INCORR_FREE            = 1 << 11,
     NULL_ELEM_CORRUPTED    = 1 << 12,
-    NULL_IDX_CORRUPTED     = 1 << 13,
-    INCORR_FILL_NEXT_ARRAY = 1 << 14,
-    INCORR_FILL_PRED_ARRAY = 1 << 15,
+    INCORR_FILL_NEXT_ARRAY = 1 << 13,
+    INCORR_FILL_PRED_ARRAY = 1 << 14,
 };
 
 const list_elem_t POISON = -6666;
@@ -34,8 +33,6 @@ struct list{
     list_elem_t* data;
     int* next;
     int* pred;
-    int head;
-    int tail;
     int free;
     size_t num_of_elem;
 };

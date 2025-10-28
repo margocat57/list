@@ -45,9 +45,7 @@ list list_ctor(size_t num_of_elem){
         list1.next[idx] = (idx < (int)num_of_elem - 1) ? idx + 1 : 0;
         list1.pred[idx] = -1;
     }
-    list1.head = 0;
     list1.free = 1;
-    list1.tail = 0;
 
     list1.num_of_elem = num_of_elem;
 
@@ -68,10 +66,10 @@ list_err_t list_verify(const list* list){
     CHECK_AND_RET_MISTAKE(list->num_of_elem == 0 || list->num_of_elem >= (size_t)(0.8 * (double)SIZE_MAX), 
                         INCORR_DATA_SIZE, "INCORRECT DATA SIZE\n");
 
-    CHECK_AND_RET_MISTAKE(list->head < 0 || list->head >= (int)list->num_of_elem, 
+    CHECK_AND_RET_MISTAKE(list->next[0] < 0 || list->next[0] >= (int)list->num_of_elem, 
                         INCORR_HEAD, "INCORRECT HEAD VALUE\n");
 
-    CHECK_AND_RET_MISTAKE(list->tail < 0 || list->tail >= (int)list->num_of_elem, 
+    CHECK_AND_RET_MISTAKE(list->pred[0] < 0 || list->pred[0] >= (int)list->num_of_elem, 
                         INCORR_TAIL, "INCORRECT TAIL VALUE\n");
 
     CHECK_AND_RET_MISTAKE(list->free < 0 || list->free >= (int)list->num_of_elem,
@@ -79,11 +77,8 @@ list_err_t list_verify(const list* list){
 
     CHECK_AND_RET_MISTAKE(list->data[0] != POISON, NULL_ELEM_CORRUPTED, "DATA[0] ELEMENT CORRUPTED\n");
 
-    CHECK_AND_RET_MISTAKE(list->next[0] != 0 || list->pred[0] != 0, 
-                        NULL_IDX_CORRUPTED, "list->next[0] != 0 or list->pred[0] != 0\n");
-
     DEBUG(
-    if(list->head != 0 && list->tail != 0){
+    if(list->next[0] != 0 && list->pred[0] != 0){
         err |= check_next(list);
         err |= check_pred(list);
     }
@@ -101,8 +96,8 @@ static list_err_t check_next(const list* list){
             return INCORR_FILL_NEXT_ARRAY;
         }
 
-        if(data_idx == list -> tail){
-            if(list->next[list->tail] == 0){
+        if(data_idx == list->pred[0]){
+            if(list->next[data_idx] == 0){
                 continue;
             }
             fprintf(stderr, "NEXT ELEMENT FOR TAIL ELEMENT IS NOT ZERO\n");
@@ -126,7 +121,7 @@ static list_err_t check_next(const list* list){
             }
         }
 
-        if(data_idx == list->head) {
+        if(data_idx == list->next[0]) {
             if(number_of_next == 0) {
                 continue;
             }
@@ -152,8 +147,8 @@ static list_err_t check_pred(const list* list){
             return INCORR_FILL_PRED_ARRAY;
         }
 
-        if(data_idx == list -> head){
-            if(list->pred[list->head] == 0){
+        if(data_idx == list -> next[0]){
+            if(list->pred[data_idx] == 0){
                 continue;
             }
             fprintf(stderr, "PREVIOUS ELEMENT FOR HEAD ELEMENT IS NOT ZERO\n");
@@ -177,7 +172,7 @@ static list_err_t check_pred(const list* list){
             }
         }
 
-        if(data_idx == list->tail) {
+        if(data_idx == list->pred[0]) {
             if(number_of_prev == 0) {
                 continue;
             }
@@ -195,7 +190,39 @@ static list_err_t check_pred(const list* list){
     return NO_MISTAKE;
 }
 
-list_err_t add_elem(list* list, list_elem_t elem, int idx){
+list_err_t add_elem_before_idx(list* list, list_elem_t elem, int idx){
+    list_err_t err = NO_MISTAKE;
+
+    if(idx <= 0 && (idx >= (int)list->num_of_elem && list->free != 0)){
+        fprintf(stderr, "Incorrect index %d in add function\n", idx);
+        return IDX_OUT_OF_ARR;
+    }
+
+    err = list_verify(list);
+    if(err) return err;
+
+    if(list->free == 0){
+        err = list_realloc(list, list->num_of_elem * 2);
+        if(err) return err;
+        list->free = idx + 1;
+    }
+
+    int new_free = 0;
+    new_free = list->next[list->free];
+
+    list->data[list->free] = elem;
+    list->pred[list->free] = (idx == list->free) ? list->pred[0] : list->pred[idx];
+    list->pred[list->next[list->pred[list->free]]] = list -> free;
+    list->next[list->free] = list->next[list->pred[list->free]];
+    list->next[list->pred[list->free]] = list->free;
+
+    list->free = new_free;
+
+    err = list_verify(list);
+    return err;
+} 
+
+list_err_t add_elem_after_idx(list* list, list_elem_t elem, int idx){
     list_err_t err = NO_MISTAKE;
 
     if(idx < 0 && (idx >= (int)list->num_of_elem && list->free != 0)){
@@ -216,22 +243,10 @@ list_err_t add_elem(list* list, list_elem_t elem, int idx){
     new_free = list->next[list->free];
 
     list->data[list->free] = elem;
-    if(idx == 0){
-        list -> next[list->free] = list -> pred[list -> next[list -> head]];
-        list->head = list->free;
-    }
-    else{
-        list->next[list->free] = list->next[idx];
-        list->next[idx] = list->free;
-    }
-
-    list->pred[list->free] = idx; 
-    if(list->next[list->free] == 0){
-        list->tail = list->free;
-    }
-    else{
-        list->pred[list->next[list->free]] = list->free;
-    }
+    list->next[list->free] = list->next[idx];
+    list->next[idx] = list->free;
+    list->pred[list->free] = list->pred[list->next[list->free]];
+    list->pred[list->next[list->free]] = list->free;
 
     list->free = new_free;
 
@@ -250,19 +265,8 @@ list_err_t del_elem(list* list, int idx){
     err = list_verify(list);
     if(err) return err;
 
-    if(idx == 1){
-        list->head = list->next[idx];
-    }
-    if(list->next[idx] == 0){
-        list->tail = list->pred[idx];
-    }
-
-    if(list->next[idx] != 0){
-        list->pred[list->next[idx]] = list -> pred[idx];
-    }
-    if(idx != 1){
-        list->next[list->pred[idx]] = list -> next[idx];
-    }
+    list->pred[list->next[idx]] = list -> pred[idx];
+    list->next[list->pred[idx]] = list -> next[idx];
     list->next[idx] = list -> free;
     list->pred[idx] = -1;
     list->data[idx] = POISON;

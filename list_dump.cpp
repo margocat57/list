@@ -26,6 +26,7 @@ static void list_dump_html(const list* list, const char* output, const char* img
         }
         launch_num++;
         fprintf(html_output, "<pre style=\"background-color: #1E2A36; color: #FFFFFF;\">\n");
+        fprintf(html_output, "<p style=\"font-size: 50px; text-align: center;\"> LIST DUMP\n");
     }
     else{
         html_output = fopen(output, "a+");
@@ -34,10 +35,11 @@ static void list_dump_html(const list* list, const char* output, const char* img
             return;
         }
     }
+    fprintf(html_output, "<p style=\"font-size: 20px; \">Dump was called at %s function %s line %d\n", file, func, line);
+    fprintf(html_output, "<p style=\"font-size: 15px; \">%s\n" ,debug_msg);
     fprintf(html_output, "\n");
-    fprintf(html_output, "Dump was called at %s function %s line %d\n", file, func, line);
-    fprintf(html_output, "%s\n" ,debug_msg);
     fprintf(html_output, "<img src=\"%s\" alt=\"Array visualization\" width=\"95%%\">\n", img);
+    fprintf(html_output, "\n");
     fclose(html_output);
 }
 
@@ -54,7 +56,7 @@ static char* generate_dot_png_file(const list* list, const char* name_file){
         fprintf(stderr, "Can't parse name of dot file\n");
         return NULL;
     }
-    if(snprintf(png_filename, 100, "%s.png", name_file) == -1){
+    if(snprintf(png_filename, 100, "%s.svg", name_file) == -1){
         fprintf(stderr, "Can't parse name of png file\n");
         return NULL;
     }
@@ -69,7 +71,7 @@ static char* generate_dot_png_file(const list* list, const char* name_file){
     fprintf(dot_file, " rankdir=LR;\n");
     fprintf(dot_file, " splines=ortho;\n");
     fprintf(dot_file, " graph [bgcolor=\"#1E2A36\"];\n");
-    fprintf(dot_file, " info[shape=\"record\", style=\"filled\", fillcolor=\"#4A5257\", color = \"#FFF4CC\", penwidth=2.0, label=\"head = %d | tail = %d | free = %d\"];\n", list->head, list->tail, list->free);
+    fprintf(dot_file, " info[shape=\"record\", style=\"filled\", fillcolor=\"#4A5257\", color = \"#FFF4CC\", penwidth=2.0, label=\"head = %d | tail = %d | free = %d\"];\n", list->next[0], list->pred[0], list->free);
     for(int idx = 1; idx < (int)list->num_of_elem; idx++){
         if(list->data[idx]==POISON){
             continue;
@@ -126,7 +128,7 @@ static char* generate_dot_png_file(const list* list, const char* name_file){
     fprintf(dot_file,"}\n");
     fclose(dot_file);
 
-    if(snprintf(command, sizeof(command) ,"dot -Tpng %s -o %s", dot_filename, png_filename) == -1){
+    if(snprintf(command, sizeof(command) ,"dot -Tsvg %s -o %s", dot_filename, png_filename) == -1){
         fprintf(stderr, "Can't parse command to do\n");
         return NULL;
     }

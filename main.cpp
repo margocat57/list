@@ -4,27 +4,27 @@
 
 int main(){
     list l1 = list_ctor(5); // а вот здесь как вариант можно указывать где был создан
-    add_elem(&l1, 10, 0);
-    add_elem(&l1, 20, 1);
-    add_elem(&l1, 30, 2);
-    add_elem(&l1, 40, 3);
-    add_elem(&l1, 50, 4);
-    add_elem(&l1, 60, 5);
-    add_elem(&l1, 35, 3);
+    add_elem_after_idx(&l1, 10, 0);
+    add_elem_after_idx(&l1, 20, 1);
+    add_elem_after_idx(&l1, 30, 2);
+    add_elem_after_idx(&l1, 40, 3);
+    add_elem_after_idx(&l1, 50, 4);
+    add_elem_after_idx(&l1, 60, 5);
+    add_elem_after_idx(&l1, 35, 3);
     list_dump_func(&l1, "l1_dump_1", "log.htm", "After adding35", __FILE__, __PRETTY_FUNCTION__, __LINE__);
-    add_elem(&l1, 36, 7);
+    add_elem_after_idx(&l1, 36, 7);
     list_dump_func(&l1, "l1_dump_2", "log.htm", "After adding36", __FILE__, __PRETTY_FUNCTION__, __LINE__);
-    add_elem(&l1, 32, 3);
+    add_elem_after_idx(&l1, 32, 3);
     list_dump_func(&l1, "l1_dump_3", "log.htm", "After adding32", __FILE__, __PRETTY_FUNCTION__, __LINE__);
     del_elem(&l1, 6);
     list_dump_func(&l1, "l1_dump_4", "log.htm", "After deleting 6st elem", __FILE__, __PRETTY_FUNCTION__, __LINE__);
     del_elem(&l1, 1);
     list_dump_func(&l1, "l1_dump_5", "log.htm", "After deleting 1st elem", __FILE__, __PRETTY_FUNCTION__, __LINE__);
-    add_elem(&l1, 11, 0);
+    add_elem_after_idx(&l1, 11, 0);
     list_dump_func(&l1, "l1_dump_6", "log.htm", "After adding 11", __FILE__, __PRETTY_FUNCTION__, __LINE__);
-    add_elem(&l1, 66, 5);
+    add_elem_after_idx(&l1, 66, 5);
     list_dump_func(&l1, "l1_dump_7", "log.htm", "After adding66", __FILE__, __PRETTY_FUNCTION__, __LINE__);
-    add_elem(&l1, 70, 6);
+    add_elem_after_idx(&l1, 70, 6);
     list_dump_func(&l1, "l1_dump_8", "log.htm", "After adding70", __FILE__, __PRETTY_FUNCTION__, __LINE__);
     //del_elem(&l1, 10);
 
