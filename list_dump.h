@@ -3,6 +3,6 @@
 #include <string.h>
 #include "list_struct.h"
 
-void list_dump_func(const list* list, const char* input_file, const char* output_file, const char* debug_msg);
+void list_dump_func(const list* list, const char* input_file, const char* output_file, const char* debug_msg, const char *file, const char *func, int line);
 
 #endif // LIST_DUMP_H
