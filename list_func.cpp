@@ -92,7 +92,7 @@ static list_err_t check_next(const list* list){
     int number_of_next = 0;
     for(int data_idx = 1; data_idx < (int)list->num_of_elem; data_idx++){
         if(list->next[data_idx] < 0 || list->next[data_idx] >= (int)list->num_of_elem){
-            list_dump_func(list, "l1_dump_mist1", "log.htm", "Next element index for data_idx element out of array", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+            list_dump_func(list, "log.htm", "Next element index for data_idx element out of array", __FILE__, __PRETTY_FUNCTION__, __LINE__);
             return INCORR_FILL_NEXT_ARRAY;
         }
 
@@ -101,7 +101,7 @@ static list_err_t check_next(const list* list){
                 continue;
             }
             fprintf(stderr, "NEXT ELEMENT FOR TAIL ELEMENT IS NOT ZERO\n");
-            list_dump_func(list, "l1_dump_mist2", "log.htm", "NEXT ELEMENT FOR TAIL ELEMENT IS NOT ZERO", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+            list_dump_func(list, "log.htm", "NEXT ELEMENT FOR TAIL ELEMENT IS NOT ZERO", __FILE__, __PRETTY_FUNCTION__, __LINE__);
             return INCORR_FILL_NEXT_ARRAY;
         }
 
@@ -110,7 +110,7 @@ static list_err_t check_next(const list* list){
                 continue;
             }
             fprintf(stderr, "For elem [%d] that is POISON next elem is not POISON\n", data_idx);
-            list_dump_func(list, "l1_dump_mist3", "log.htm", "For POISON element next elem is not POISON", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+            list_dump_func(list, "log.htm", "For POISON element next elem is not POISON", __FILE__, __PRETTY_FUNCTION__, __LINE__);
             return INCORR_FILL_NEXT_ARRAY;
         }
 
@@ -126,13 +126,13 @@ static list_err_t check_next(const list* list){
                 continue;
             }
             fprintf(stderr, "Head elem [%d] has %d previous elements\n", data_idx, number_of_next);
-            list_dump_func(list, "l1_dump_mist4", "log.htm", "Head element has not zero previous elements", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+            list_dump_func(list, "log.htm", "Head element has not zero previous elements", __FILE__, __PRETTY_FUNCTION__, __LINE__);
             return INCORR_FILL_NEXT_ARRAY;
         } 
 
         if(number_of_next != 1) {
             fprintf(stderr, "Elem [%d] has %d next elements (expected 1)\n", data_idx, number_of_next);
-            list_dump_func(list, "l1_dump_mist5", "log.htm", "One of the elements has more than one next elements", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+            list_dump_func(list, "log.htm", "One of the elements has more than one next elements", __FILE__, __PRETTY_FUNCTION__, __LINE__);
             return INCORR_FILL_NEXT_ARRAY;
         }
     }
@@ -143,7 +143,7 @@ static list_err_t check_pred(const list* list){
     int number_of_prev = 0;
     for(int data_idx = 1; data_idx < (int)list->num_of_elem; data_idx++){
         if((list->pred[data_idx] < 0 && list->pred[data_idx] != -1) || list->pred[data_idx] >= (int)list->num_of_elem){
-            list_dump_func(list, "l1_dump_mist6", "log.htm", "Prev element index for data_idx element out of array", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+            list_dump_func(list, "log.htm", "Prev element index for data_idx element out of array", __FILE__, __PRETTY_FUNCTION__, __LINE__);
             return INCORR_FILL_PRED_ARRAY;
         }
 
@@ -152,7 +152,7 @@ static list_err_t check_pred(const list* list){
                 continue;
             }
             fprintf(stderr, "PREVIOUS ELEMENT FOR HEAD ELEMENT IS NOT ZERO\n");
-            list_dump_func(list, "l1_dump_mist7", "log.htm", "PREVIOUS ELEMENT FOR HEAD ELEMENT IS NOT ZERO", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+            list_dump_func(list, "log.htm", "PREVIOUS ELEMENT FOR HEAD ELEMENT IS NOT ZERO", __FILE__, __PRETTY_FUNCTION__, __LINE__);
             return INCORR_FILL_PRED_ARRAY;
         }
 
@@ -161,7 +161,7 @@ static list_err_t check_pred(const list* list){
                 continue;
             }
             fprintf(stderr, "For elem [%d] that is POISON previous elem is not -1\n", data_idx);
-            list_dump_func(list, "l1_dump_mist8", "log.htm", "For POISON element previous elem is not -1", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+            list_dump_func(list, "log.htm", "For POISON element previous elem is not -1", __FILE__, __PRETTY_FUNCTION__, __LINE__);
             return INCORR_FILL_PRED_ARRAY;
         }
 
@@ -177,13 +177,13 @@ static list_err_t check_pred(const list* list){
                 continue;
             }
             fprintf(stderr, "Tail elem [%d] has %d next elements\n", data_idx, number_of_prev);
-            list_dump_func(list, "l1_dump_mist9", "log.htm", "Tail elem has more than one next elements", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+            list_dump_func(list, "log.htm", "Tail elem has more than one next elements", __FILE__, __PRETTY_FUNCTION__, __LINE__);
             return INCORR_FILL_PRED_ARRAY;
         } 
 
         if(number_of_prev != 1) {
             fprintf(stderr, "Elem [%d] has %d previous elements (expected 1)\n", data_idx, number_of_prev);
-            list_dump_func(list, "l1_dump_mist10", "log.htm", "Element has more than one previous elements", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+            list_dump_func(list, "log.htm", "Element has more than one previous elements", __FILE__, __PRETTY_FUNCTION__, __LINE__);
             return INCORR_FILL_PRED_ARRAY;
         }
     }
@@ -193,13 +193,13 @@ static list_err_t check_pred(const list* list){
 list_err_t add_elem_before_idx(list* list, list_elem_t elem, int idx){
     list_err_t err = NO_MISTAKE;
 
+    err = list_verify(list);
+    if(err) return err;
+
     if(idx <= 0 && (idx >= (int)list->num_of_elem && list->free != 0)){
         fprintf(stderr, "Incorrect index %d in add function\n", idx);
         return IDX_OUT_OF_ARR;
     }
-
-    err = list_verify(list);
-    if(err) return err;
 
     if(list->free == 0){
         err = list_realloc(list, list->num_of_elem * 2);
@@ -225,13 +225,13 @@ list_err_t add_elem_before_idx(list* list, list_elem_t elem, int idx){
 list_err_t add_elem_after_idx(list* list, list_elem_t elem, int idx){
     list_err_t err = NO_MISTAKE;
 
+    err = list_verify(list);
+    if(err) return err;
+
     if(idx < 0 && (idx >= (int)list->num_of_elem && list->free != 0)){
         fprintf(stderr, "Incorrect index %d in add function\n", idx);
         return IDX_OUT_OF_ARR;
     }
-
-    err = list_verify(list);
-    if(err) return err;
 
     if(list->free == 0){
         err = list_realloc(list, list->num_of_elem * 2);
@@ -257,13 +257,13 @@ list_err_t add_elem_after_idx(list* list, list_elem_t elem, int idx){
 list_err_t del_elem(list* list, int idx){
     list_err_t err = NO_MISTAKE;
 
+    err = list_verify(list);
+    if(err) return err;
+
     if(idx <= 0 || idx >= (int)list->num_of_elem){
         fprintf(stderr, "Incorrect index %d in delete function\n", idx);
         return IDX_OUT_OF_ARR;
     }
-
-    err = list_verify(list);
-    if(err) return err;
 
     list->pred[list->next[idx]] = list -> pred[idx];
     list->next[list->pred[idx]] = list -> next[idx];

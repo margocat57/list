@@ -1,14 +1,15 @@
 #include "list_struct.h"
 #include "list_dump.h"
 #include <stdio.h>
+#include <time.h>
 #include <stdlib.h>
 
-static char* generate_dot_png_file(const list* list, const char* name_file);
+static char* generate_dot_png_file(const list* list);
 
 static void list_dump_html(const list* list, const char* output, const char* img, const char* debug_msg, const char *file, const char *func, int line);
 
-void list_dump_func(const list* list, const char* input_file, const char* output_file, const char* debug_msg, const char *file, const char *func,  int line){
-    char* img = generate_dot_png_file(list, input_file);
+void list_dump_func(const list* list, const char* output_file, const char* debug_msg, const char *file, const char *func,  int line){
+    char* img = generate_dot_png_file(list);
     if(img){
         list_dump_html(list, output_file, img, debug_msg, file, func, line);
     }
@@ -38,26 +39,74 @@ static void list_dump_html(const list* list, const char* output, const char* img
     fprintf(html_output, "<p style=\"font-size: 20px; \">Dump was called at %s function %s line %d\n", file, func, line);
     fprintf(html_output, "<p style=\"font-size: 15px; \">%s\n" ,debug_msg);
     fprintf(html_output, "\n");
+
+    fprintf(html_output, "<table style=\"text-align: center; font-size: 15px; border: 2px solid #FFFFFF; border-collapse: collapse; width: 50%%; color: #FFFFFF;\">\n");
+
+    fprintf(html_output, "<tr>\n");
+    fprintf(html_output, "<td>Index</td>");
+    for (int i = 0; i < (int)list->num_of_elem; i++) {
+        fprintf(html_output, "<td style = \"border: 1px solid #FFFFFF\";>%d</td>\n", i);
+    }
+    fprintf(html_output, "</tr>\n");
+
+    fprintf(html_output, "<tr>\n");
+    fprintf(html_output, "<td>Data</td>");
+    for (int i = 0; i < (int)list->num_of_elem; i++) {
+        fprintf(html_output, "<td style = \"border: 1px solid #FFFFFF\";>%.2lf</td>\n", list->data[i]);
+    }
+    fprintf(html_output, "</tr>\n");
+
+    fprintf(html_output, "<tr>\n");
+    fprintf(html_output, "<td>Next</td>");
+    for (int i = 0; i < (int)list->num_of_elem; i++) {
+        fprintf(html_output, "<td style = \"border: 1px solid #FFFFFF\";>%d</td>\n", list->next[i]);
+    }
+    fprintf(html_output, "</tr>\n");
+
+    fprintf(html_output, "<tr>\n");
+    fprintf(html_output, "<td>Prev</td>");
+    for (int i = 0; i < (int)list->num_of_elem; i++) {
+        fprintf(html_output, "<td style = \"border: 1px solid #FFFFFF\";>%d</td>\n", list->pred[i]);
+    }
+    fprintf(html_output, "</tr>\n");
+
+    fprintf(html_output, "</table>\n"); 
+
     fprintf(html_output, "<img src=\"%s\" alt=\"Array visualization\" width=\"95%%\">\n", img);
     fprintf(html_output, "\n");
     fclose(html_output);
 }
 
-static char* generate_dot_png_file(const list* list, const char* name_file){
+static char* generate_dot_png_file(const list* list){
+    static int num = 0;
+    num++;
+
     char dot_filename[100] = {0};
     char* png_filename = (char*)calloc(100, sizeof(char));
     if(!png_filename){
         fprintf(stderr, "Allocation error");
         return NULL;
     }
-    char command[200]      = {0};
+    char command[200] = {0};
 
-    if(snprintf(dot_filename, sizeof(dot_filename), "%s.dot", name_file) == -1){
-        fprintf(stderr, "Can't parse name of dot file\n");
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+
+    if (snprintf(dot_filename, sizeof(dot_filename), 
+                "images/dump%d_%04d%02d%02d_%02d%02d%02d.dot", num,
+                t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
+                t->tm_hour, t->tm_min, t->tm_sec) == -1) {
+        fprintf(stderr, "Can't generate dot filename\n");
+        free(png_filename);
         return NULL;
     }
-    if(snprintf(png_filename, 100, "%s.svg", name_file) == -1){
-        fprintf(stderr, "Can't parse name of png file\n");
+    
+    if (snprintf(png_filename, 100, 
+                "images/dump%d_%04d%02d%02d_%02d%02d%02d.svg", num,
+                t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
+                t->tm_hour, t->tm_min, t->tm_sec) == -1) {
+        fprintf(stderr, "Can't generate svg filename\n");
+        free(png_filename);
         return NULL;
     }
 

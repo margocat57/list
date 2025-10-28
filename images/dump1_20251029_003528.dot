@@ -1,0 +1,32 @@
+digraph G{
+ rankdir=LR;
+ splines=ortho;
+ graph [bgcolor="#1E2A36"];
+ info[shape="record", style="filled", fillcolor="#4A5257", color = "#FFF4CC", penwidth=2.0, label="head = 1 | tail = 6 | free = 8"];
+ 1[shape="record", style="filled", fillcolor="#82898F", color = "#FFFFFF", penwidth=2.0, label="phys idx = 1 | elem = 10.00 | {prev = 0 | next = 2}"];
+ 2[shape="record", style="filled", fillcolor="#82898F", color = "#FFFFFF", penwidth=2.0, label="phys idx = 2 | elem = 20.00 | {prev = 1 | next = 3}"];
+ 3[shape="record", style="filled", fillcolor="#82898F", color = "#FFFFFF", penwidth=2.0, label="phys idx = 3 | elem = 30.00 | {prev = 2 | next = 7}"];
+ 4[shape="record", style="filled", fillcolor="#82898F", color = "#FFFFFF", penwidth=2.0, label="phys idx = 4 | elem = 40.00 | {prev = 7 | next = 5}"];
+ 5[shape="record", style="filled", fillcolor="#82898F", color = "#FFFFFF", penwidth=2.0, label="phys idx = 5 | elem = 50.00 | {prev = 4 | next = 6}"];
+ 6[shape="record", style="filled", fillcolor="#82898F", color = "#FFFFFF", penwidth=2.0, label="phys idx = 6 | elem = 60.00 | {prev = 5 | next = 0}"];
+ 7[shape="record", style="filled", fillcolor="#82898F", color = "#FFFFFF", penwidth=2.0, label="phys idx = 7 | elem = 35.00 | {prev = 3 | next = 4}"];
+ 8[shape="record", style="filled", fillcolor="#5C646B", color = "#ffe766", penwidth=2.0, label="phys idx = 8 | elem = PZN | {prev = -1 | next = 9} "];
+ 9[shape="record", style="filled", fillcolor="#5C646B", color = "#ffe766", penwidth=2.0, label="phys idx = 9 | elem = PZN | {prev = -1 | next = 10} "];
+ 10[shape="record", style="filled", fillcolor="#5C646B", color = "#ffe766", penwidth=2.0, label="phys idx = 10 | elem = PZN | {prev = -1 | next = 0} "];
+ info -> 1 [style="invis", weight=500]
+ 1 -> 2 [style="invis", weight=500]
+ 2 -> 3 [style="invis", weight=500]
+ 3 -> 4 [style="invis", weight=500]
+ 4 -> 5 [style="invis", weight=500]
+ 5 -> 6 [style="invis", weight=500]
+ 6 -> 7 [style="invis", weight=500]
+ 7 -> 8 [style="invis", weight=1000]
+ 8 -> 9 [style="invis", weight=500]
+ 9 -> 10 [style="invis", weight=500]
+ 1 -> 2 [color = "#D4A798", penwidth = 1, arrowsize = 0.85]
+ 2 -> 3 [color = "#D4A798", penwidth = 1, arrowsize = 0.85]
+ 3 -> 7 [color = "#D4A798", penwidth = 1, arrowsize = 0.85]
+ 4 -> 5 [color = "#D4A798", penwidth = 1, arrowsize = 0.85]
+ 5 -> 6 [color = "#D4A798", penwidth = 1, arrowsize = 0.85]
+ 7 -> 4 [color = "#D4A798", penwidth = 1, arrowsize = 0.85]
+}
