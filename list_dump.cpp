@@ -4,16 +4,25 @@
 #include <time.h>
 #include <stdlib.h>
 
-static char* generate_dot_png_file(const list* list);
+static filenames_for_dump filename_ctor();
+
+static void generate_dot_file(const list* list, const char* dot_filename);
+
+static void generate_svg_file(const filenames_for_dump* dump);
+
+static void draw_table(const list* list, FILE* html_output);
 
 static void list_dump_html(const list* list, const char* output, const char* img, const char* debug_msg, const char *file, const char *func, int line);
 
 void list_dump_func(const list* list, const char* output_file, const char* debug_msg, const char *file, const char *func,  int line){
-    char* img = generate_dot_png_file(list);
-    if(img){
-        list_dump_html(list, output_file, img, debug_msg, file, func, line);
+    filenames_for_dump dump = filename_ctor();
+    generate_dot_file(list, dump.dot_filename);
+    generate_svg_file(&dump);
+    if(dump.svg_filename){
+        list_dump_html(list, output_file, dump.svg_filename, debug_msg, file, func, line);
     }
-    free(img);
+    free(dump.svg_filename);
+    free(dump.dot_filename);
 }
 
 static void list_dump_html(const list* list, const char* output, const char* img, const char* debug_msg, const char *file, const char *func,  int line){
@@ -21,25 +30,27 @@ static void list_dump_html(const list* list, const char* output, const char* img
     FILE* html_output = NULL;
     if(launch_num == 0){
         html_output = fopen(output, "w");
-        if(!html_output){
-            fprintf(stderr, "Can't open html file\n");
-            return;
-        }
+        CHECK_AND_RET_DUMP(!html_output, "Can't open html file\n");
         launch_num++;
-        fprintf(html_output, "<pre style=\"background-color: #1E2A36; color: #FFFFFF;\">\n");
+        fprintf(html_output, "<pre style=\"background-color: #1E2A36; color: #FFFFFF;\">");
         fprintf(html_output, "<p style=\"font-size: 50px; text-align: center;\"> LIST DUMP\n");
     }
     else{
         html_output = fopen(output, "a+");
-        if(!html_output){
-            fprintf(stderr, "Can't open html file\n");
-            return;
-        }
+        CHECK_AND_RET_DUMP(!html_output, "Can't open html file\n");
     }
     fprintf(html_output, "<p style=\"font-size: 20px; \">Dump was called at %s function %s line %d\n", file, func, line);
     fprintf(html_output, "<p style=\"font-size: 15px; \">%s\n" ,debug_msg);
     fprintf(html_output, "\n");
 
+    draw_table(list, html_output);
+
+    fprintf(html_output, "<img src=\"%s\" alt=\"Array visualization\" width=\"95%%\">\n", img);
+    fprintf(html_output, "\n");
+    fclose(html_output);
+}
+
+static void draw_table(const list* list, FILE* html_output){
     fprintf(html_output, "<table style=\"text-align: center; font-size: 15px; border: 2px solid #FFFFFF; border-collapse: collapse; width: 50%%; color: #FFFFFF;\">\n");
 
     fprintf(html_output, "<tr>\n");
@@ -71,49 +82,61 @@ static void list_dump_html(const list* list, const char* output, const char* img
     fprintf(html_output, "</tr>\n");
 
     fprintf(html_output, "</table>\n"); 
-
-    fprintf(html_output, "<img src=\"%s\" alt=\"Array visualization\" width=\"95%%\">\n", img);
-    fprintf(html_output, "\n");
-    fclose(html_output);
 }
 
-static char* generate_dot_png_file(const list* list){
+static filenames_for_dump filename_ctor(){
+    filenames_for_dump dump = {};
     static int num = 0;
     num++;
 
-    char dot_filename[100] = {0};
-    char* png_filename = (char*)calloc(100, sizeof(char));
-    if(!png_filename){
+    char* dot_filename = (char*)calloc(100, sizeof(char));
+    if(!dot_filename){
         fprintf(stderr, "Allocation error");
-        return NULL;
+        return dump;
     }
-    char command[200] = {0};
+
+    char* svg_filename = (char*)calloc(100, sizeof(char));
+    if(!svg_filename){
+        fprintf(stderr, "Allocation error");
+        return dump;
+    }
+
+    dump.svg_filename = svg_filename;
+    dump.dot_filename = dot_filename;
 
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
 
-    if (snprintf(dot_filename, sizeof(dot_filename), 
+    if (snprintf(dump.dot_filename, 100, 
                 "images/dump%d_%04d%02d%02d_%02d%02d%02d.dot", num,
                 t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
                 t->tm_hour, t->tm_min, t->tm_sec) == -1) {
         fprintf(stderr, "Can't generate dot filename\n");
-        free(png_filename);
-        return NULL;
+        free(dump.svg_filename);
+        return {};
     }
     
-    if (snprintf(png_filename, 100, 
+    if (snprintf(dump.svg_filename, 100, 
                 "images/dump%d_%04d%02d%02d_%02d%02d%02d.svg", num,
                 t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
                 t->tm_hour, t->tm_min, t->tm_sec) == -1) {
         fprintf(stderr, "Can't generate svg filename\n");
-        free(png_filename);
-        return NULL;
+        free(dump.dot_filename);
+        return {};
+    }
+    return dump;
+}
+
+static void generate_dot_file(const list* list, const char* dot_filename){
+    if(!dot_filename){
+        fprintf(stderr, "NULL dot_filename pointer - can't work\n");
+        return;
     }
 
     FILE* dot_file = fopen(dot_filename, "w");
     if(!dot_file){
         fprintf(stderr, "Can't open dot file\n");
-        return NULL;
+        return;
     }
 
     fprintf(dot_file, "digraph G{\n");
@@ -173,18 +196,20 @@ static char* generate_dot_png_file(const list* list){
         fprintf(dot_file," %d -> %d [color = \"#D4A798\", penwidth = 1, arrowsize = 0.85]\n", idx, list->next[idx]);
     }
 
-
     fprintf(dot_file,"}\n");
     fclose(dot_file);
+}
 
-    if(snprintf(command, sizeof(command) ,"dot -Tsvg %s -o %s", dot_filename, png_filename) == -1){
+static void generate_svg_file(const filenames_for_dump* dump){
+    char command[200] = {0};
+
+    if(snprintf(command, sizeof(command) ,"dot -Tsvg %s -o %s", dump->dot_filename, dump->svg_filename) == -1){
         fprintf(stderr, "Can't parse command to do\n");
-        return NULL;
+        return;
     }
     int mistake = system(command);
     if(mistake != 0){
         fprintf(stderr, "System can't do parsing command, error code %d\n", mistake);
-        return NULL;
+        return;
     }
-    return png_filename;
 }
