@@ -27,5 +27,5 @@ list: main.o list_func.o list_dump.o
 # clang++ -o stack main.o hash.o log.o my_assert.o stack_func.o
 
 clean:
-	rm -f list *.o *.dot *.svg
+	rm -f list *.o images/*.dot images/*.svg
 # убирать исполняемый файл
