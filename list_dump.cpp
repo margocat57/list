@@ -23,9 +23,11 @@ void list_dump_func(const list* list, const char* output_file, const char* debug
     generate_svg_file(&dump);
     if(dump.svg_filename){
         list_dump_html(list, output_file, dump.svg_filename, debug_msg, file, func, line);
+        free(dump.svg_filename);
     }
-    free(dump.svg_filename);
-    free(dump.dot_filename);
+    if(sump.dot_filename){
+        free(dump.dot_filename);
+    }
 }
 
 static void list_dump_html(const list* list, const char* output, const char* img, const char* debug_msg, const char *file, const char *func,  int line){
