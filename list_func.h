@@ -9,22 +9,15 @@
     #define DEBUG(...)
 #endif //_DEBUG
 
-#define CHECK_AND_RET_MISTAKE(bad_condition, err_code, msg)\
-    if(bad_condition){ \
-        err = err_code; \
-        fprintf(stderr, msg); \
-        return err; \
-    } \
-
-list list_ctor(size_t num_of_elem);
+list list_ctor(ssize_t num_of_elem);
 
 list_err_t list_verify(const list* list);
 
-list_err_t add_elem_before_idx(list* list, list_elem_t elem, int idx);
+list_err_t add_elem_before_idx(list* list, list_elem_t elem, ssize_t idx);
 
-list_err_t add_elem_after_idx(list* list, list_elem_t elem, int idx);
+list_err_t add_elem_after_idx(list* list, list_elem_t elem, ssize_t idx);
 
-list_err_t del_elem(list* list, int idx);
+list_err_t del_elem(list* list, ssize_t idx);
 
 void list_dtor(list* list);
 

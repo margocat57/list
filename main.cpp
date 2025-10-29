@@ -5,10 +5,11 @@
 
 int main(){
     list l1 = list_ctor(5); 
-    test_add_after_and_delete(&l1, "log.htm");
+    // имя логфайла - глобальная характеристика программы
+    test_add_after_and_delete(&l1);
 
     list l2 = list_ctor(5); 
-    test_add_before_and_delete(&l2, "log.htm");
+    test_add_before_and_delete(&l2);
 
     list_dtor(&l1);
     list_dtor(&l2);

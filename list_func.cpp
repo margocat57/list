@@ -4,33 +4,42 @@
 #include <stdio.h>
 #include <limits.h>
 
-static list_err_t list_realloc(list* list, size_t elem);
+#define CHECK_AND_RET_MISTAKE(bad_condition, err_code, msg)\
+    if(bad_condition){ \
+        err = err_code; \
+        fprintf(stderr, msg); \
+        return err; \
+    } \
 
-static list_err_t check_next(const list* list);
+static list_err_t list_realloc(list* list, ssize_t elem);
 
-static list_err_t check_pred(const list* list);
+static list_err_t check_correct_order_next_prev(const list* list);
 
-list list_ctor(size_t num_of_elem){
+static list_err_t check_list_idx_not_smaller_zero(ssize_t idx);
+
+void list_elem_dtor(void* ptr, size_t len_bytes);
+
+list list_ctor(ssize_t num_of_elem){
     list list1 = {};
-    if(num_of_elem >= (size_t)(0.8 * (double)SIZE_MAX)){
+    if(num_of_elem < 0){
         fprintf(stderr, "INCORRECT list size\n");
         return {};
     }
-    list1.data = (list_elem_t*)calloc(num_of_elem, sizeof(list_elem_t));
+    list1.data = (list_elem_t*)calloc((size_t)num_of_elem, sizeof(list_elem_t));
     if(!list1.data){
         fprintf(stderr, "Can't alloc memory for list.data array\n");
         return {};
     }
 
-    list1.next =(int*)calloc(num_of_elem, sizeof(int));
+    list1.next =(ssize_t*)calloc((size_t)num_of_elem, sizeof(ssize_t));
     if(!list1.next){
         fprintf(stderr, "Can't alloc memory for list.next array\n");
         list_dtor(&list1);
         return {};
     }
 
-    list1.pred =(int*)calloc(num_of_elem, sizeof(int));
-    if(!list1.pred){
+    list1.prev =(ssize_t*)calloc((size_t)num_of_elem, sizeof(ssize_t));
+    if(!list1.prev){
         fprintf(stderr, "Can't alloc memory for list.pred array\n");
         list_dtor(&list1);
         return {};
@@ -39,11 +48,11 @@ list list_ctor(size_t num_of_elem){
     list1.data[0] = POISON;
 
     list1.next[0] = 0;
-    list1.pred[0] = 0;
-    for(int idx = 1; idx < (int)num_of_elem; idx++){
+    list1.prev[0] = 0;
+    for(ssize_t idx = 1; idx < num_of_elem; idx++){
         list1.data[idx] = POISON;
-        list1.next[idx] = (idx < (int)num_of_elem - 1) ? idx + 1 : 0;
-        list1.pred[idx] = -1;
+        list1.next[idx] = (idx < num_of_elem - 1) ? idx + 1 : 0;
+        list1.prev[idx] = -1;
     }
     list1.free = 1;
 
@@ -61,166 +70,128 @@ list_err_t list_verify(const list* list){
 
     CHECK_AND_RET_MISTAKE(!list->next, NULL_NEXT_PTR, "LIST NEXT PTR IS NULL\n");
 
-    CHECK_AND_RET_MISTAKE(!list->pred, NULL_PRED_PTR, "LIST PRED PTR IS NULL\n");
+    CHECK_AND_RET_MISTAKE(!list->prev, NULL_PRED_PTR, "LIST PRED PTR IS NULL\n");
 
-    CHECK_AND_RET_MISTAKE(list->num_of_elem == 0 || list->num_of_elem >= (size_t)(0.8 * (double)SIZE_MAX), 
-                        INCORR_DATA_SIZE, "INCORRECT DATA SIZE\n");
+    CHECK_AND_RET_MISTAKE(list->num_of_elem <= 0, INCORR_DATA_SIZE, "INCORRECT DATA SIZE\n");
 
-    CHECK_AND_RET_MISTAKE(list->next[0] < 0 || list->next[0] >= (int)list->num_of_elem, 
+    CHECK_AND_RET_MISTAKE(list->next[0] < 0 || list->next[0] >= list->num_of_elem, 
                         INCORR_HEAD, "INCORRECT HEAD VALUE\n");
 
-    CHECK_AND_RET_MISTAKE(list->pred[0] < 0 || list->pred[0] >= (int)list->num_of_elem, 
+    CHECK_AND_RET_MISTAKE(list->prev[0] < 0 || list->prev[0] >= list->num_of_elem, 
                         INCORR_TAIL, "INCORRECT TAIL VALUE\n");
 
-    CHECK_AND_RET_MISTAKE(list->free < 0 || list->free >= (int)list->num_of_elem,
+    CHECK_AND_RET_MISTAKE(list->free < 0 || list->free >= list->num_of_elem,
                         INCORR_FREE, "INCORRECT FREE VALUE\n");
 
     CHECK_AND_RET_MISTAKE(list->data[0] != POISON, NULL_ELEM_CORRUPTED, "DATA[0] ELEMENT CORRUPTED\n");
 
+    CHECK_AND_RET_MISTAKE(list->data[list->free] != POISON, FREE_ELEM_ISNT_POISON, "FREE ELEMENT ISN'T POISON\n");
+
     DEBUG(
-    if(list->next[0] != 0 && list->pred[0] != 0){
-        err |= check_next(list);
-        err |= check_pred(list);
+    if(list->next[0] != 0 && list->prev[0] != 0){
+        err |= check_correct_order_next_prev(list);
     }
     )
     return err;
 
 }
 
-// возвращать больше ошибок
-static list_err_t check_next(const list* list){
+static list_err_t check_correct_order_next_prev(const list* list){
     int number_of_next = 0;
-    for(int data_idx = 1; data_idx < (int)list->num_of_elem; data_idx++){
-        if(list->next[data_idx] < 0 || list->next[data_idx] >= (int)list->num_of_elem){
-            list_dump_func(list, "log.htm", "Next element index for data_idx element out of array", __FILE__, __PRETTY_FUNCTION__, __LINE__);
-            return INCORR_FILL_NEXT_ARRAY;
+    for(ssize_t data_idx = 1; data_idx < list->num_of_elem; data_idx++){
+        if(list->next[data_idx] < 0 || list->next[data_idx] >= list->num_of_elem){
+            fprintf(stderr, "Next element index for data_idx element out of array\n");
+            list_dump_func(list, "Next element index for data_idx element out of array", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+            return INCORR_FILL_NEXT_PREV_ARR;
         }
 
-        if(data_idx == list->pred[0]){
+        if((list->prev[data_idx] < 0 && list->prev[data_idx] != -1) || list->prev[data_idx] >= list->num_of_elem){
+            fprintf(stderr, "Prev element index for data_idx element out of array\n");
+            list_dump_func(list, "Prev element index for data_idx element out of array", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+            return INCORR_FILL_NEXT_PREV_ARR;
+        }
+
+        if(data_idx == list->prev[0]){
             if(list->next[data_idx] == 0){
                 continue;
             }
             fprintf(stderr, "NEXT ELEMENT FOR TAIL ELEMENT IS NOT ZERO\n");
-            list_dump_func(list, "log.htm", "NEXT ELEMENT FOR TAIL ELEMENT IS NOT ZERO", __FILE__, __PRETTY_FUNCTION__, __LINE__);
-            return INCORR_FILL_NEXT_ARRAY;
-        }
-
-        if(list->data[data_idx] == POISON) {
-            if(list->data[list->next[data_idx]] == POISON){
-                continue;
-            }
-            fprintf(stderr, "For elem [%d] that is POISON next elem is not POISON\n", data_idx);
-            list_dump_func(list, "log.htm", "For POISON element next elem is not POISON", __FILE__, __PRETTY_FUNCTION__, __LINE__);
-            return INCORR_FILL_NEXT_ARRAY;
-        }
-
-        number_of_next = 0;
-        for(int next_idx = 1; next_idx < (int)list->num_of_elem; next_idx++) {
-            if(list->next[next_idx] == data_idx){
-                number_of_next++;
-            }
-        }
-
-        if(data_idx == list->next[0]) {
-            if(number_of_next == 0) {
-                continue;
-            }
-            fprintf(stderr, "Head elem [%d] has %d previous elements\n", data_idx, number_of_next);
-            list_dump_func(list, "log.htm", "Head element has not zero previous elements", __FILE__, __PRETTY_FUNCTION__, __LINE__);
-            return INCORR_FILL_NEXT_ARRAY;
-        } 
-
-        if(number_of_next != 1) {
-            fprintf(stderr, "Elem [%d] has %d next elements (expected 1)\n", data_idx, number_of_next);
-            list_dump_func(list, "log.htm", "One of the elements has more than one next elements", __FILE__, __PRETTY_FUNCTION__, __LINE__);
-            return INCORR_FILL_NEXT_ARRAY;
-        }
-    }
-    return NO_MISTAKE;
-}
-
-static list_err_t check_pred(const list* list){
-    int number_of_prev = 0;
-    for(int data_idx = 1; data_idx < (int)list->num_of_elem; data_idx++){
-        if((list->pred[data_idx] < 0 && list->pred[data_idx] != -1) || list->pred[data_idx] >= (int)list->num_of_elem){
-            list_dump_func(list, "log.htm", "Prev element index for data_idx element out of array", __FILE__, __PRETTY_FUNCTION__, __LINE__);
-            return INCORR_FILL_PRED_ARRAY;
+            list_dump_func(list, "NEXT ELEMENT FOR TAIL ELEMENT IS NOT ZERO", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+            return INCORR_FILL_NEXT_PREV_ARR;
         }
 
         if(data_idx == list -> next[0]){
-            if(list->pred[data_idx] == 0){
+            if(list->prev[data_idx] == 0){
                 continue;
             }
             fprintf(stderr, "PREVIOUS ELEMENT FOR HEAD ELEMENT IS NOT ZERO\n");
-            list_dump_func(list, "log.htm", "PREVIOUS ELEMENT FOR HEAD ELEMENT IS NOT ZERO", __FILE__, __PRETTY_FUNCTION__, __LINE__);
-            return INCORR_FILL_PRED_ARRAY;
+            list_dump_func(list, "PREVIOUS ELEMENT FOR HEAD ELEMENT IS NOT ZERO", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+            return INCORR_FILL_NEXT_PREV_ARR;
         }
 
         if(list->data[data_idx] == POISON){
-            if(list->pred[data_idx] == -1){
+            if(list->prev[data_idx] == -1){
                 continue;
             }
-            fprintf(stderr, "For elem [%d] that is POISON previous elem is not -1\n", data_idx);
-            list_dump_func(list, "log.htm", "For POISON element previous elem is not -1", __FILE__, __PRETTY_FUNCTION__, __LINE__);
-            return INCORR_FILL_PRED_ARRAY;
+            fprintf(stderr, "PREVIOUS ELEMENT FOR POISON IS NOT -1\n");
+            list_dump_func(list, "PREVIOUS ELEMENT FOR POISON IS NOT -1", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+            return INCORR_FILL_NEXT_PREV_ARR;
         }
 
-        number_of_prev = 0;
-        for(int prev_idx = 1; prev_idx < (int)list->num_of_elem; prev_idx++) {
-            if(list->pred[prev_idx] == data_idx){
-                number_of_prev++;
-            }
+        if(list->prev[list->next[data_idx]] != data_idx ){
+            fprintf(stderr, "Previous for next element(%zd) for element(%zd) != element, but = %zd",  list->next[data_idx], data_idx, list->prev[list->next[data_idx]]);
+            list_dump_func(list, "INCORRECT ORDER OF ELEMENTS", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+            return INCORR_FILL_NEXT_PREV_ARR;
         }
 
-        if(data_idx == list->pred[0]) {
-            if(number_of_prev == 0) {
-                continue;
-            }
-            fprintf(stderr, "Tail elem [%d] has %d next elements\n", data_idx, number_of_prev);
-            list_dump_func(list, "log.htm", "Tail elem has more than one next elements", __FILE__, __PRETTY_FUNCTION__, __LINE__);
-            return INCORR_FILL_PRED_ARRAY;
-        } 
-
-        if(number_of_prev != 1) {
-            fprintf(stderr, "Elem [%d] has %d previous elements (expected 1)\n", data_idx, number_of_prev);
-            list_dump_func(list, "log.htm", "Element has more than one previous elements", __FILE__, __PRETTY_FUNCTION__, __LINE__);
-            return INCORR_FILL_PRED_ARRAY;
+        if(list->next[list->prev[data_idx]] != data_idx ){
+            fprintf(stderr, "Next for previous element(%zd) for element(%zd) != element, but = %zd)", list->prev[data_idx], data_idx, list->next[list->prev[data_idx]]);
+            list_dump_func(list, "INCORRECT ORDER OF ELEMENTS", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+            return INCORR_FILL_NEXT_PREV_ARR;
         }
+
     }
     return NO_MISTAKE;
 }
 
-list_err_t add_elem_before_idx(list* list, list_elem_t elem, int idx){
+static list_err_t check_list_idx_not_smaller_zero(ssize_t idx){
+    if(idx < 0){
+        fprintf(stderr, "Incorrect index %zd to where add or del elem\n", idx);
+        return IDX_OUT_OF_ARR;
+    }
+    return NO_MISTAKE;
+}
+
+list_err_t add_elem_before_idx(list* list, list_elem_t elem, ssize_t idx){
     list_err_t err = NO_MISTAKE;
 
     err = list_verify(list);
     if(err) return err;
 
-    if(idx <= 0 && (idx >= (int)list->num_of_elem && list->free != 0)){
-        fprintf(stderr, "Incorrect index %d in add function\n", idx);
+    err = check_list_idx_not_smaller_zero(idx);
+    if(err) return err;
+
+    if(idx >= list->num_of_elem && list->free != 0){
+        fprintf(stderr, "Incorrect index %zd in add function\n", idx);
         return IDX_OUT_OF_ARR;
     }
 
     if(list->free == 0){
-        size_t old_num_of_elem = list->num_of_elem;
+        ssize_t old_num_of_elem = list->num_of_elem;
         err = list_realloc(list, list->num_of_elem * 2);
         if(err) return err;
         list->free = old_num_of_elem;
     }
 
-    int new_free = 0;
+    ssize_t new_free = 0;
     new_free = list->next[list->free];
 
     list->data[list->free] = elem;
-    if(list->pred[idx] == -1 || idx == list->num_of_elem){
-        list->pred[list->free] = list->pred[0];
-    }
-    else{
-        list->pred[list->free] = list->pred[idx];
-    }
-    list->pred[list->next[list->pred[list->free]]] = list -> free;
-    list->next[list->free] = list->next[list->pred[list->free]];
-    list->next[list->pred[list->free]] = list->free;
+    // вставить в хвост не умеет делать - точнее умеет вставлять перед 0 элементом
+    list->prev[list->free] = list->prev[idx];
+    list->prev[list->next[list->prev[list->free]]] = list -> free;
+    list->next[list->free] = list->next[list->prev[list->free]];
+    list->next[list->prev[list->free]] = list->free;
 
     list->free = new_free;
 
@@ -228,14 +199,17 @@ list_err_t add_elem_before_idx(list* list, list_elem_t elem, int idx){
     return err;
 } 
 
-list_err_t add_elem_after_idx(list* list, list_elem_t elem, int idx){
+list_err_t add_elem_after_idx(list* list, list_elem_t elem, ssize_t idx){
     list_err_t err = NO_MISTAKE;
 
     err = list_verify(list);
     if(err) return err;
 
-    if(idx < 0 && (idx >= (int)list->num_of_elem && list->free != 0)){
-        fprintf(stderr, "Incorrect index %d in add function\n", idx);
+    err = check_list_idx_not_smaller_zero(idx);
+    if(err) return err;
+
+    if(idx >= list->num_of_elem && list->free != 0){
+        fprintf(stderr, "Incorrect index %zd in add function\n", idx);
         return IDX_OUT_OF_ARR;
     }
 
@@ -245,14 +219,14 @@ list_err_t add_elem_after_idx(list* list, list_elem_t elem, int idx){
         list->free = idx + 1;
     }
 
-    int new_free = 0;
+    ssize_t new_free = 0;
     new_free = list->next[list->free];
 
     list->data[list->free] = elem;
     list->next[list->free] = list->next[idx];
     list->next[idx] = list->free;
-    list->pred[list->free] = list->pred[list->next[list->free]];
-    list->pred[list->next[list->free]] = list->free;
+    list->prev[list->free] = list->prev[list->next[list->free]];
+    list->prev[list->next[list->free]] = list->free;
 
     list->free = new_free;
 
@@ -260,21 +234,24 @@ list_err_t add_elem_after_idx(list* list, list_elem_t elem, int idx){
     return err;
 } 
 
-list_err_t del_elem(list* list, int idx){
+list_err_t del_elem(list* list, ssize_t idx){
     list_err_t err = NO_MISTAKE;
 
     err = list_verify(list);
     if(err) return err;
 
-    if(idx <= 0 || idx >= (int)list->num_of_elem){
-        fprintf(stderr, "Incorrect index %d in delete function\n", idx);
+    err = check_list_idx_not_smaller_zero(idx);
+    if(err) return err;
+
+    if(idx == 0 || idx >= list->num_of_elem){
+        fprintf(stderr, "Incorrect index %zd in delete function\n", idx);
         return IDX_OUT_OF_ARR;
     }
 
-    list->pred[list->next[idx]] = list -> pred[idx];
-    list->next[list->pred[idx]] = list -> next[idx];
+    list->prev[list->next[idx]] = list -> prev[idx];
+    list->next[list->prev[idx]] = list -> next[idx];
     list->next[idx] = list -> free;
-    list->pred[idx] = -1;
+    list->prev[idx] = -1;
     list->data[idx] = POISON;
     list -> free = idx;
 
@@ -282,39 +259,47 @@ list_err_t del_elem(list* list, int idx){
     return err;
 }
 
-static list_err_t list_realloc(list* list, size_t elem){
-    size_t new_size = elem + 1;
+static list_err_t list_realloc(list* list, ssize_t elem){
+    ssize_t new_size = elem + 1;
 
-    list_elem_t* list_data_new = (list_elem_t*)realloc(list->data, sizeof(list_elem_t) * new_size);
+    list_elem_t* list_data_new = (list_elem_t*)realloc(list->data, sizeof(list_elem_t) * (size_t)new_size);
     if(!list_data_new){
         fprintf(stderr, "Can't realloc data array to edd new elem\n");
         return DATA_ALLOC_ERR; 
     }
     list->data = list_data_new;
 
-    int* list_next_new = (int*)realloc(list->next, sizeof(int) * new_size);
+    ssize_t* list_next_new = (ssize_t*)realloc(list->next, sizeof(ssize_t) * (size_t)new_size);
     if(!list_next_new){
         fprintf(stderr, "Can't realloc next array to edd new elem\n");
         return NEXT_ALLOC_ERR; 
     }
     list->next = list_next_new;
 
-    int* list_pred_new = (int*)realloc(list->pred, sizeof(int) * new_size);
-    if(!list_pred_new){
+    ssize_t* list_prev_new = (ssize_t*)realloc(list->prev, sizeof(ssize_t) * (size_t)new_size);
+    if(!list_prev_new){
         fprintf(stderr, "Can't realloc pred array to edd new elem\n");
         list_dtor(list);
         return PRED_ALLOC_ERR; 
     }
-    list->pred = list_pred_new;
+    list->prev = list_prev_new;
 
-    for(int idx = (int)list->num_of_elem; idx < (int)new_size; idx++){
-        list->next[idx] = (idx < (int)new_size - 1) ? idx + 1 : 0;
-        list->pred[idx] = -1;
+    for(ssize_t idx = list->num_of_elem; idx < new_size; idx++){
+        list->next[idx] = (idx < new_size - 1) ? idx + 1 : 0;
+        list->prev[idx] = -1;
         list->data[idx] = POISON;
     }
     list->num_of_elem = new_size;
 
     return NO_MISTAKE;
+}
+
+void list_elem_dtor(void* ptr, size_t len_bytes){
+    if(ptr){
+        memset(ptr, 0, len_bytes);
+        free(ptr);
+        ptr = NULL;
+    }
 }
 
 
@@ -324,21 +309,9 @@ void list_dtor(list* list){
         return;
     }
 
-    if(list->data){
-        memset(list->data, 0, list->num_of_elem * sizeof(list_elem_t));
-        free(list->data);
-        list->data = NULL;
-    }
+    list_elem_dtor(list->data, (size_t)list->num_of_elem * sizeof(list_elem_t));
 
-    if(list->next){
-        memset(list->next, 0, list->num_of_elem * sizeof(int));
-        free(list->next);
-        list->next = NULL;
-    }
+    list_elem_dtor(list->next, (size_t)list->num_of_elem * sizeof(ssize_t));
 
-    if(list->pred){
-        memset(list->pred, 0, list->num_of_elem * sizeof(int));
-        free(list->pred);
-        list->pred = NULL;
-    }
+    list_elem_dtor(list->prev, (size_t)list->num_of_elem * sizeof(ssize_t));
 }

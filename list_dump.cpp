@@ -5,6 +5,12 @@
 #include <time.h>
 #include <stdlib.h>
 
+#define CHECK_AND_RET_DUMP(bad_condition, msg)\
+    if(bad_condition){ \
+        fprintf(stderr, msg); \
+        return; \
+    } \
+
 static filenames_for_dump filename_ctor();
 
 static int check_and_dump_system_work(int sys_res);
@@ -15,33 +21,33 @@ static void generate_svg_file(const filenames_for_dump* dump);
 
 static void draw_table(const list* list, FILE* html_output);
 
-static void list_dump_html(const list* list, const char* output, const char* img, const char* debug_msg, const char *file, const char *func, int line);
+static void list_dump_html(const list* list, const char* img, const char* debug_msg, const char *file, const char *func, int line);
 
-void list_dump_func(const list* list, const char* output_file, const char* debug_msg, const char *file, const char *func,  int line){
+void list_dump_func(const list* list, const char* debug_msg, const char *file, const char *func,  int line){
     filenames_for_dump dump = filename_ctor();
     generate_dot_file(list, dump.dot_filename);
     generate_svg_file(&dump);
     if(dump.svg_filename){
-        list_dump_html(list, output_file, dump.svg_filename, debug_msg, file, func, line);
+        list_dump_html(list, dump.svg_filename, debug_msg, file, func, line);
         free(dump.svg_filename);
     }
-    if(sump.dot_filename){
+    if(dump.dot_filename){
         free(dump.dot_filename);
     }
 }
 
-static void list_dump_html(const list* list, const char* output, const char* img, const char* debug_msg, const char *file, const char *func,  int line){
+static void list_dump_html(const list* list, const char* img, const char* debug_msg, const char *file, const char *func,  int line){
     static int launch_num = 0;
     FILE* html_output = NULL;
     if(launch_num == 0){
-        html_output = fopen(output, "w");
+        html_output = fopen(LOG_FILE, "w");
         CHECK_AND_RET_DUMP(!html_output, "Can't open html file\n");
         launch_num++;
         fprintf(html_output, "<pre style=\"background-color: #1E2A36; color: #FFFFFF;\">");
         fprintf(html_output, "<p style=\"font-size: 50px; text-align: center;\"> LIST DUMP\n");
     }
     else{
-        html_output = fopen(output, "a+");
+        html_output = fopen(LOG_FILE, "a+");
         CHECK_AND_RET_DUMP(!html_output, "Can't open html file\n");
     }
     fprintf(html_output, "<p style=\"font-size: 20px; \">Dump was called at %s function %s line %d\n", file, func, line);
@@ -60,29 +66,29 @@ static void draw_table(const list* list, FILE* html_output){
 
     fprintf(html_output, "<tr>\n");
     fprintf(html_output, "<td>Index</td>");
-    for (int i = 0; i < (int)list->num_of_elem; i++) {
-        fprintf(html_output, "<td style = \"border: 1px solid #FFFFFF\";>%d</td>\n", i);
+    for (ssize_t i = 0; i < list->num_of_elem; i++) {
+        fprintf(html_output, "<td style = \"border: 1px solid #FFFFFF\";>%zd</td>\n", i);
     }
     fprintf(html_output, "</tr>\n");
 
     fprintf(html_output, "<tr>\n");
     fprintf(html_output, "<td>Data</td>");
-    for (int i = 0; i < (int)list->num_of_elem; i++) {
+    for (ssize_t i = 0; i < list->num_of_elem; i++) {
         fprintf(html_output, "<td style = \"border: 1px solid #FFFFFF\";>%.2lf</td>\n", list->data[i]);
     }
     fprintf(html_output, "</tr>\n");
 
     fprintf(html_output, "<tr>\n");
     fprintf(html_output, "<td>Next</td>");
-    for (int i = 0; i < (int)list->num_of_elem; i++) {
-        fprintf(html_output, "<td style = \"border: 1px solid #FFFFFF\";>%d</td>\n", list->next[i]);
+    for (ssize_t i = 0; i < list->num_of_elem; i++) {
+        fprintf(html_output, "<td style = \"border: 1px solid #FFFFFF\";>%zd</td>\n", list->next[i]);
     }
     fprintf(html_output, "</tr>\n");
 
     fprintf(html_output, "<tr>\n");
     fprintf(html_output, "<td>Prev</td>");
-    for (int i = 0; i < (int)list->num_of_elem; i++) {
-        fprintf(html_output, "<td style = \"border: 1px solid #FFFFFF\";>%d</td>\n", list->pred[i]);
+    for (ssize_t i = 0; i < list->num_of_elem; i++) {
+        fprintf(html_output, "<td style = \"border: 1px solid #FFFFFF\";>%zd</td>\n", list->prev[i]);
     }
     fprintf(html_output, "</tr>\n");
 
@@ -96,21 +102,21 @@ static filenames_for_dump filename_ctor(){
 
     char* dot_filename = (char*)calloc(100, sizeof(char));
     if(!dot_filename){
-        fprintf(stderr, "Allocation error");
+        fprintf(stderr, "Allocation error for string with .dot filename");
         return dump;
     }
 
     char* svg_filename = (char*)calloc(100, sizeof(char));
     if(!svg_filename){
-        fprintf(stderr, "Allocation error");
+        fprintf(stderr, "Allocation error for string with .svg filename");
         return dump;
     }
 
     dump.svg_filename = svg_filename;
     dump.dot_filename = dot_filename;
 
-    time_t now = time(NULL); // количество секунд с 1970, не сохраняем никуда
-    struct tm *t = localtime(&now); // преобразует в года/часы/... - поля структуры
+    time_t now = time(NULL); 
+    struct tm *t = localtime(&now); 
 
     if (snprintf(dump.dot_filename, 100, 
                 "images/dump%d_%04d%02d%02d_%02d%02d%02d.dot", num,
@@ -148,57 +154,58 @@ static void generate_dot_file(const list* list, const char* dot_filename){
     fprintf(dot_file, " rankdir=LR;\n");
     fprintf(dot_file, " splines=ortho;\n");
     fprintf(dot_file, " graph [bgcolor=\"#1E2A36\"];\n");
-    fprintf(dot_file, " info[shape=\"record\", style=\"filled\", fillcolor=\"#4A5257\", color = \"#FFF4CC\", penwidth=2.0, label=\"head = %d | tail = %d | free = %d\"];\n", list->next[0], list->pred[0], list->free);
-    for(int idx = 1; idx < (int)list->num_of_elem; idx++){
+
+    fprintf(dot_file, " info[shape=\"record\", style=\"filled\", fillcolor=\"#4A5257\", color = \"#FFF4CC\", penwidth=2.0, label=\"head = %zd | tail = %zd | free = %zd\"];\n", list->next[0], list->prev[0], list->free);
+    for(ssize_t idx = 1; idx < list->num_of_elem; idx++){
         if(list->data[idx]==POISON){
             continue;
         }
-        fprintf(dot_file, " %d[shape=\"record\", style=\"filled\", fillcolor=\"#82898F\", color = \"#FFFFFF\", penwidth=2.0, label=\"phys idx = %d | elem = %.2lf | {prev = %d | next = %d}\"];\n", idx ,idx, list->data[idx], list->pred[idx], list->next[idx]);
+        fprintf(dot_file, " %zd[shape=\"record\", style=\"filled\", fillcolor=\"#82898F\", color = \"#FFFFFF\", penwidth=2.0, label=\"phys idx = %zd | elem = %.2lf | {prev = %zd | next = %zd}\"];\n", idx ,idx, list->data[idx], list->prev[idx], list->next[idx]);
     }
-    for(int idx = 1; idx < (int)list->num_of_elem; idx++){
+    for(ssize_t idx = 1; idx < list->num_of_elem; idx++){
         if(list->data[idx]!=POISON){
             continue;
         }
-        fprintf(dot_file, " %d[shape=\"record\", style=\"filled\", fillcolor=\"#5C646B\", color = \"#ffe766\", penwidth=2.0, label=\"phys idx = %d | elem = PZN | {prev = %d | next = %d} \"];\n", idx ,idx, list->pred[idx], list->next[idx]);
+        fprintf(dot_file, " %zd[shape=\"record\", style=\"filled\", fillcolor=\"#5C646B\", color = \"#ffe766\", penwidth=2.0, label=\"phys idx = %zd | elem = PZN | {prev = %zd | next = %zd} \"];\n", idx ,idx, list->prev[idx], list->next[idx]);
     }
 
     // connect normal elements
-    int last_norm_idx = 0;
-    for(int idx = 1; idx < (int)list->num_of_elem; idx++){
+    ssize_t last_norm_idx = 0;
+    for(ssize_t idx = 1; idx < list->num_of_elem; idx++){
         if(list->data[idx]!=POISON){
             if(last_norm_idx == 0){
                 last_norm_idx = idx;
-                fprintf(dot_file," info -> %d [style=\"invis\", weight=500]\n", last_norm_idx);
+                fprintf(dot_file," info -> %zd [style=\"invis\", weight=500]\n", last_norm_idx);
                 continue;
             }
-            fprintf(dot_file," %d -> %d [style=\"invis\", weight=500]\n", last_norm_idx, idx);
+            fprintf(dot_file," %zd -> %zd [style=\"invis\", weight=500]\n", last_norm_idx, idx);
             last_norm_idx = idx;
         }
     }
 
     // connect poison elements
-    int poison_idx = 0;
-    for(int idx = 1; idx < (int)list->num_of_elem; idx++){
+    ssize_t poison_idx = 0;
+    for(ssize_t idx = 1; idx < list->num_of_elem; idx++){
         if(list->data[idx]==POISON){
             if(poison_idx == 0){
                 poison_idx = idx;
-                fprintf(dot_file," %d -> %d [style=\"invis\", weight=1000]\n", last_norm_idx, poison_idx);
+                fprintf(dot_file," %zd -> %zd [style=\"invis\", weight=1000]\n", last_norm_idx, poison_idx);
                 continue;
             }
-            fprintf(dot_file," %d -> %d [style=\"invis\", weight=500]\n", poison_idx, idx);
+            fprintf(dot_file," %zd -> %zd [style=\"invis\", weight=500]\n", poison_idx, idx);
             poison_idx = idx;
         }
     }
 
     // connect next elements
-    for(int idx = 1; idx < (int)list->num_of_elem; idx++){
+    for(ssize_t idx = 1; idx < list->num_of_elem; idx++){
         if(list->data[idx]==POISON){
             continue;
         }
         if(list->next[idx]==0){
             continue;
         }
-        fprintf(dot_file," %d -> %d [color = \"#D4A798\", penwidth = 1, arrowsize = 0.85]\n", idx, list->next[idx]);
+        fprintf(dot_file," %zd -> %zd [color = \"#D4A798\", penwidth = 1, arrowsize = 0.85]\n", idx, list->next[idx]);
     }
 
     fprintf(dot_file,"}\n");
@@ -221,18 +228,13 @@ static int check_and_dump_system_work(int sys_res){
         return 0;
     }
     if(sys_res == -1){
-        fprintf(stderr, "Cannot statr to do command\n");
+        fprintf(stderr, "Cannot start to do command\n");
         return -1;
     }
     if(WIFEXITED(sys_res)){
         int exit_stat = WEXITSTATUS(sys_res);
         fprintf(stderr, "Creating svg file finished with mistake %d\n", exit_stat);
         return exit_stat;
-    }
-    if(WIFSIGNALED(sys_res)){
-        int sign_that_stop = WTERMSIG(sys_res);
-        fprintf(stderr, "Coomand was finished by signal %d\n", sign_that_stop);
-        return sign_that_stop;
     }
     return 0;
 }
