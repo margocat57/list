@@ -18,7 +18,7 @@ CFLAGS = $(COMMON_CFLAGS) $(CFLAGS_DEBUG)
 	$(COMP) -c $< -o $@ $(CFLAGS) 
 # clang++ -cpp main.cpp (зависимость) -o main.o (цель) флаги
 
-list: main.o list_func.o list_dump.o 
+list: main.o list_func.o list_dump.o list_test.o
 	$(COMP) -o $@ $^ 
 
 # $@ имя цели

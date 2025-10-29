@@ -202,16 +202,22 @@ list_err_t add_elem_before_idx(list* list, list_elem_t elem, int idx){
     }
 
     if(list->free == 0){
+        size_t old_num_of_elem = list->num_of_elem;
         err = list_realloc(list, list->num_of_elem * 2);
         if(err) return err;
-        list->free = idx + 1;
+        list->free = old_num_of_elem;
     }
 
     int new_free = 0;
     new_free = list->next[list->free];
 
     list->data[list->free] = elem;
-    list->pred[list->free] = (idx == list->free) ? list->pred[0] : list->pred[idx];
+    if(list->pred[idx] == -1 || idx == list->num_of_elem){
+        list->pred[list->free] = list->pred[0];
+    }
+    else{
+        list->pred[list->free] = list->pred[idx];
+    }
     list->pred[list->next[list->pred[list->free]]] = list -> free;
     list->next[list->free] = list->next[list->pred[list->free]];
     list->next[list->pred[list->free]] = list->free;
