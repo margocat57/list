@@ -1,10 +1,13 @@
 #include "list_struct.h"
 #include "list_dump.h"
+#include <sys/wait.h>
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
 
 static filenames_for_dump filename_ctor();
+
+static int check_and_dump_system_work(int sys_res);
 
 static void generate_dot_file(const list* list, const char* dot_filename);
 
@@ -104,8 +107,8 @@ static filenames_for_dump filename_ctor(){
     dump.svg_filename = svg_filename;
     dump.dot_filename = dot_filename;
 
-    time_t now = time(NULL);
-    struct tm *t = localtime(&now);
+    time_t now = time(NULL); // количество секунд с 1970, не сохраняем никуда
+    struct tm *t = localtime(&now); // преобразует в года/часы/... - поля структуры
 
     if (snprintf(dump.dot_filename, 100, 
                 "images/dump%d_%04d%02d%02d_%02d%02d%02d.dot", num,
@@ -207,9 +210,27 @@ static void generate_svg_file(const filenames_for_dump* dump){
         fprintf(stderr, "Can't parse command to do\n");
         return;
     }
-    int mistake = system(command);
-    if(mistake != 0){
-        fprintf(stderr, "System can't do parsing command, error code %d\n", mistake);
-        return;
+    int sys_res = system(command);
+    check_and_dump_system_work(sys_res);
+}
+
+static int check_and_dump_system_work(int sys_res){
+    if(sys_res == 0){
+        return 0;
     }
+    if(sys_res == -1){
+        fprintf(stderr, "Cannot statr to do command\n");
+        return -1;
+    }
+    if(WIFEXITED(sys_res)){
+        int exit_stat = WEXITSTATUS(sys_res);
+        fprintf(stderr, "Creating svg file finished with mistake %d\n", exit_stat);
+        return exit_stat;
+    }
+    if(WIFSIGNALED(sys_res)){
+        int sign_that_stop = WTERMSIG(sys_res);
+        fprintf(stderr, "Coomand was finished by signal %d\n", sign_that_stop);
+        return sign_that_stop;
+    }
+    return 0;
 }
