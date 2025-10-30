@@ -13,9 +13,11 @@
 
 static list_err_t list_realloc(list* list, ssize_t elem);
 
-static list_err_t check_correct_order_next_prev(const list* list);
+static list_err_t check_size_next(const list* list);
 
-static list_err_t check_list_idx_not_smaller_zero(ssize_t idx);
+static list_err_t check_size_prev(const list* list);
+
+static list_err_t check_correct_order_next_prev(const list* list);
 
 void list_elem_dtor(void* ptr, size_t len_bytes);
 
@@ -46,6 +48,7 @@ list list_ctor(ssize_t num_of_elem){
     }
 
     list1.data[0] = POISON;
+    list1.size = 0;
 
     list1.next[0] = 0;
     list1.prev[0] = 0;
@@ -90,10 +93,43 @@ list_err_t list_verify(const list* list){
     DEBUG(
     if(list->next[0] != 0 && list->prev[0] != 0){
         err |= check_correct_order_next_prev(list);
+        err |= check_size_next(list);
+        err |= check_size_prev(list);
     }
     )
     return err;
 
+}
+
+static list_err_t check_size_next(const list* list){
+    ssize_t data_idx = 0;
+    ssize_t size_dbg = 0;
+    while(list->next[data_idx] != 0){
+        size_dbg++;
+        data_idx = list->next[data_idx];
+    }
+    if(size_dbg != list->size){
+        fprintf(stderr, "Incorrect size counted by next array expexted %zd, got %zd\n", list->size, size_dbg);
+        list_dump_func(list, "Incorrect size counted by next array", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+        return INCORR_NUM_OF_NPOISON_EL;
+    }
+    return NO_MISTAKE;
+}
+
+static list_err_t check_size_prev(const list* list){
+    ssize_t data_idx = 0;
+    ssize_t size_dbg = 0;
+    while(list->prev[data_idx] != 0){
+        size_dbg++;
+        data_idx = list->prev[data_idx];
+    }
+
+    if(size_dbg != list->size){
+        fprintf(stderr, "Incorrect size counted by prev array expexted %zd, got %zd\n", list->size, size_dbg);
+        list_dump_func(list, "Incorrect size counted by prev array", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+        return INCORR_NUM_OF_NPOISON_EL;
+    }
+    return NO_MISTAKE;
 }
 
 static list_err_t check_correct_order_next_prev(const list* list){
@@ -154,13 +190,6 @@ static list_err_t check_correct_order_next_prev(const list* list){
     return NO_MISTAKE;
 }
 
-static list_err_t check_list_idx_not_smaller_zero(ssize_t idx){
-    if(idx < 0){
-        fprintf(stderr, "Incorrect index %zd to where add or del elem\n", idx);
-        return IDX_OUT_OF_ARR;
-    }
-    return NO_MISTAKE;
-}
 
 list_err_t add_elem_before_idx(list* list, list_elem_t elem, ssize_t idx){
     list_err_t err = NO_MISTAKE;
@@ -168,11 +197,9 @@ list_err_t add_elem_before_idx(list* list, list_elem_t elem, ssize_t idx){
     err = list_verify(list);
     if(err) return err;
 
-    err = check_list_idx_not_smaller_zero(idx);
-    if(err) return err;
-
-    if(idx >= list->num_of_elem && list->free != 0){
+    if(idx < 0 || (idx >= list->num_of_elem && list->free != 0)){
         fprintf(stderr, "Incorrect index %zd in add function\n", idx);
+        list_dump_func(list, "INCORRECT INDEX IN ADD FUNC", __FILE__, __PRETTY_FUNCTION__, __LINE__);
         return IDX_OUT_OF_ARR;
     }
 
@@ -192,6 +219,7 @@ list_err_t add_elem_before_idx(list* list, list_elem_t elem, ssize_t idx){
     list->prev[list->next[list->prev[list->free]]] = list -> free;
     list->next[list->free] = list->next[list->prev[list->free]];
     list->next[list->prev[list->free]] = list->free;
+    list->size++;
 
     list->free = new_free;
 
@@ -205,11 +233,9 @@ list_err_t add_elem_after_idx(list* list, list_elem_t elem, ssize_t idx){
     err = list_verify(list);
     if(err) return err;
 
-    err = check_list_idx_not_smaller_zero(idx);
-    if(err) return err;
-
-    if(idx >= list->num_of_elem && list->free != 0){
+    if(idx < 0 || (idx >= list->num_of_elem && list->free != 0)){
         fprintf(stderr, "Incorrect index %zd in add function\n", idx);
+        list_dump_func(list, "INCORRECT INDEX IN ADD FUNC", __FILE__, __PRETTY_FUNCTION__, __LINE__);
         return IDX_OUT_OF_ARR;
     }
 
@@ -227,6 +253,7 @@ list_err_t add_elem_after_idx(list* list, list_elem_t elem, ssize_t idx){
     list->next[idx] = list->free;
     list->prev[list->free] = list->prev[list->next[list->free]];
     list->prev[list->next[list->free]] = list->free;
+    list->size++;
 
     list->free = new_free;
 
@@ -240,11 +267,9 @@ list_err_t del_elem(list* list, ssize_t idx){
     err = list_verify(list);
     if(err) return err;
 
-    err = check_list_idx_not_smaller_zero(idx);
-    if(err) return err;
-
-    if(idx == 0 || idx >= list->num_of_elem){
+    if(idx <= 0 || idx >= list->num_of_elem){
         fprintf(stderr, "Incorrect index %zd in delete function\n", idx);
+        list_dump_func(list, "INCORRECT INDEX IN DEL FUNC", __FILE__, __PRETTY_FUNCTION__, __LINE__);
         return IDX_OUT_OF_ARR;
     }
 
@@ -254,6 +279,7 @@ list_err_t del_elem(list* list, ssize_t idx){
     list->prev[idx] = -1;
     list->data[idx] = POISON;
     list -> free = idx;
+    list->size--;
 
     err = list_verify(list);
     return err;
