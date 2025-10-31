@@ -160,21 +160,20 @@ static void generate_dot_file(const list* list, const char* dot_filename){
     fprintf(dot_file, " rankdir=LR;\n");
     fprintf(dot_file, " splines=ortho;\n");
     fprintf(dot_file, " graph [bgcolor=\"#FFFAFA\", nodesep = 0.5];\n");
+    // fprintf(dot_file, " graph [bgcolor=\"#FFFAFA\"];\n");
 
     /*
     fprintf(dot_file, " head_label [shape=box, style=\"filled\", fillcolor=\"#879eac\", color=\"#FFF4CC\", fontcolor=\"#FFF4CC\", fontsize=12, label=\"HEAD\"]\n");
     fprintf(dot_file, " tail_label [shape=box, style=\"filled\", fillcolor=\"#879eac\", color=\"#FFF4CC\", fontcolor=\"#FFF4CC\", fontsize=12, label=\"TAIL\"]\n");
-    if(list->free!=0){
-        fprintf(dot_file, " free_label [shape=box, style=\"filled\", fillcolor=\"#879eac\", color=\"#FFF4CC\", fontcolor=\"#FFF4CC\", fontsize=12, label=\"FREE\"]\n");
-    }
+    fprintf(dot_file, " free_label [shape=box, style=\"filled\", fillcolor=\"#879eac\", color=\"#FFF4CC\", fontcolor=\"#FFF4CC\", fontsize=12, label=\"FREE\"]\n");
     */
-
+    fprintf(dot_file,"subgraph system {\n");
     fprintf(dot_file, " %d[shape=\"Mrecord\", style=\"filled\", fillcolor=\"#CD5C5C\", color = \"#000000\", penwidth=1.0, label=\"phys idx = %d | elem = %.2lf | {prev = %zd | next = %zd}\"];\n", 0, 0, list->data[0], list->prev[0], list->next[0]);
     for(ssize_t idx = 1; idx < list->num_of_elem; idx++){
         if(list->data[idx]==POISON){
             continue;
         }
-        // отрисовка ярко синим таких блоков
+        // отрисовка ярко красным таких блоков
         if((list->prev[idx] >= list->num_of_elem || (list->prev[idx] < 0 && list->prev[idx]!=-1)) || (list->next[idx] >= list->num_of_elem || list->next[idx] < 0 )){
             fprintf(dot_file, " %zd[shape=\"Mrecord\", style=\"filled\", fillcolor=\"#bb0d12\", color = \" #45322E\", penwidth=2.0, label=\"phys idx = %zd | elem = %.2lf | {prev = %zd | next = %zd}\"];\n", idx ,idx, list->data[idx], list->prev[idx], list->next[idx]);
             if(list->prev[idx] >= list->num_of_elem || list->prev[idx] < 0 ){
@@ -183,6 +182,18 @@ static void generate_dot_file(const list* list, const char* dot_filename){
             if((list->next[idx] >= list->num_of_elem || list->next[idx] < 0 )){
                 fprintf(dot_file, " %zd[shape=\"octagon\", style=\"filled\", fillcolor=\"#bb0d12\", color = \"#000000\", penwidth=2.0, label=\"%zd\"];\n", list->next[idx], list->next[idx]);
             }
+            if((list->prev[idx] >= list->num_of_elem || list->prev[idx] < 0) && (list->next[idx] >= list->num_of_elem || list->next[idx] < 0 )){
+                fprintf(dot_file, "{rank = below; %zd; %zd; %zd}", idx, list->prev[idx] ,list->next[idx]);
+            }
+            if(list->prev[idx] >= list->num_of_elem || list->prev[idx] < 0 ){
+                fprintf(dot_file, "{rank = below; %zd; %zd}", idx, list->prev[idx]);
+                // fprintf(dot_file, "%zd -> %zd [style=invis, weight=40, tailport=s, headport=n];\n", idx, list->prev[idx]);
+            }
+            if((list->next[idx] >= list->num_of_elem || list->next[idx] < 0 )){
+                fprintf(dot_file, "{rank = below; %zd; %zd}", idx, list->next[idx]);
+                // fprintf(dot_file, "%zd -> %zd [style=invis, weight=40, tailport=s, headport=n];\n", list->next[idx], idx);
+            }
+            // { rank = below; 5; 75; 57; }
             continue;
         }
 
@@ -204,11 +215,14 @@ static void generate_dot_file(const list* list, const char* dot_filename){
     fprintf(dot_file, "{rank=same; %zd; tail_label;}", list->prev[0]);
     fprintf(dot_file, "{rank=same; %zd; free_label;}", list->free);
 
+    fprintf(dot_file, "align_labels [shape=point, width=0, height=0, label=\"\", style=invis];\n");
+    fprintf(dot_file, "align_labels -> head_label [style=invis, weight=200];\n");
+    fprintf(dot_file, "align_labels -> tail_label [style=invis, weight=200];\n");
+    fprintf(dot_file, "align_labels -> free_label [style=invis, weight=200];\n");
+
     fprintf(dot_file, "head_label -> %zd [color=\"#FFF4CC\", penwidth=1, arrowsize=0.85, style=\"solid\", constraint=false]\n", list->next[0]);
     fprintf(dot_file, "tail_label -> %zd [color=\"#FFF4CC\", penwidth=1, arrowsize=0.85, style=\"solid\", constraint=false]\n", list->prev[0]);
-    if(list->free!=0){
-        fprintf(dot_file, "free_label -> %zd [color=\"#FFF4CC\", penwidth=1, arrowsize=0.85, style=\"solid\"]\n", list->free);
-    }
+    fprintf(dot_file, "free_label -> %zd [color=\"#FFF4CC\", penwidth=1, arrowsize=0.85, style=\"solid\"]\n", list->free);
     */
 
     // connect normal elements
@@ -243,29 +257,29 @@ static void generate_dot_file(const list* list, const char* dot_filename){
     for(ssize_t idx = 0; idx < list->num_of_elem; idx++){
         if((list->prev[idx] >= list->num_of_elem || (list->prev[idx] < 0 && list->prev[idx]!=-1)) || (list->next[idx] >= list->num_of_elem || list->next[idx] < 0 )){
             if((list->prev[idx] >= list->num_of_elem || (list->prev[idx] < 0 && list->prev[idx]!=-1)) && (list->next[idx] >= list->num_of_elem || list->next[idx] < 0 )){
-                fprintf(dot_file, " %zd -> %zd [color = \"#bb0d12\", penwidth = 2, arrowsize = 1.2]\n",  list->prev[idx], idx);
-                fprintf(dot_file," %zd -> %zd [color = \"#bb0d12\", penwidth = 2, arrowsize = 1.2]\n", idx, list->next[idx]);
+                fprintf(dot_file, " %zd -> %zd [color = \"#FF4F00\", penwidth = 2, arrowsize = 1.2, weight=0]\n",  list->prev[idx], idx);
+                fprintf(dot_file," %zd -> %zd [color = \"#0000FF\", penwidth = 2, arrowsize = 1., weight=0]\n", idx, list->next[idx]);
                 continue;
             }
             if(list->prev[idx] >= list->num_of_elem || (list->prev[idx] < 0 && list->prev[idx]!=-1)){
-                fprintf(dot_file, " %zd -> %zd [color = \"#bb0d12\", penwidth = 2, arrowsize = 1]\n", idx, list->prev[idx]);
-                fprintf(dot_file," %zd -> %zd [color = \"#0000FF\", penwidth = 1.5, arrowsize = 1]\n", idx, list->next[idx]);
+                fprintf(dot_file, " %zd -> %zd [color = \"#FF4F00\", penwidth = 2, arrowsize = 1, weight=0]\n", list->prev[idx], idx);
+                fprintf(dot_file," %zd -> %zd [color = \"#0000FF\", penwidth = 1.5, arrowsize = 1, weight=0]\n", idx, list->next[idx]);
             }
             if(list->next[idx] >= list->num_of_elem || list->next[idx] < 0){
-                fprintf(dot_file, " %zd -> %zd [color = \"#bb0d12\", penwidth = 2, arrowsize = 1]\n",idx, list->next[idx]);
-                fprintf(dot_file," %zd -> %zd [color = \"#0000FF\", penwidth = 1.5, arrowsize = 1]\n", list->prev[idx], idx);
+                fprintf(dot_file, " %zd -> %zd [color = \"#FF4F00\", penwidth = 2, arrowsize = 1, weight=0]\n",idx, list->next[idx]);
+                fprintf(dot_file," %zd -> %zd [color = \"#0000FF\", penwidth = 1.5, arrowsize = 1, weight=0]\n", list->prev[idx], idx);
             }
             continue;
         }
 
         
         if(list->data[idx]!=POISON && list->next[list->prev[idx]] != idx){
-            fprintf(dot_file," %zd -> %zd [color = \"#0000FF\", penwidth = 1.5, arrowsize = 1, dir=back]\n", list->prev[idx], idx);
+            fprintf(dot_file," %zd -> %zd [color = \"#FF4F00\", penwidth = 1.5, arrowsize = 1, dir=back, weight=0]\n", list->prev[idx], idx);
         }
         
 
         if(list->data[idx]!=POISON && list->prev[list->next[idx]] != idx){
-            fprintf(dot_file," %zd -> %zd [color = \"#0000FF\", penwidth = 1.5, arrowsize = 1]\n", idx, list->next[idx]);
+            fprintf(dot_file," %zd -> %zd [color = \"#0000FF\", penwidth = 1.5, arrowsize = 1, weight=0]\n", idx, list->next[idx]);
             continue;
         }
 
@@ -273,19 +287,36 @@ static void generate_dot_file(const list* list, const char* dot_filename){
             if((list->prev[list->next[idx]] >= list->num_of_elem || (list->prev[list->next[idx]] < 0 && list->prev[list->next[idx]]!=-1)) || (list->next[list->next[idx]] >= list->num_of_elem || list->next[list->next[idx]] < 0 )){
                 continue;
             }
-            fprintf(dot_file," %zd -> %zd [color = \"#44944A\", penwidth = 1, arrowsize = 0.85]\n", idx, list->next[idx]);
+            fprintf(dot_file," %zd -> %zd [color = \"#44944A\", penwidth = 1, arrowsize = 0.85, weight=0]\n", idx, list->next[idx]);
         }
     
         if(list->data[idx]!=POISON || idx==0){
             if((list->prev[list->next[idx]] >= list->num_of_elem || (list->prev[list->next[idx]] < 0 && list->prev[list->next[idx]]!=-1)) || (list->next[list->next[idx]] >= list->num_of_elem || list->next[list->next[idx]] < 0 )){
                 continue;
             }
-            fprintf(dot_file," %zd -> %zd [color = \"#6A7075\", penwidth = 1, arrowsize = 0.85, dir=both]\n", idx, list->next[idx]);
+            fprintf(dot_file," %zd -> %zd [color = \"#6A7075\", penwidth = 1, arrowsize = 0.85, dir=both, weight=0]\n", idx, list->next[idx]);
             if(list->size == 1){
                 break;
             }
         }
     }
+    fprintf(dot_file,"}\n");
+
+    fprintf(dot_file,"subgraph gr1{\n");
+
+    fprintf(dot_file, " head_label [shape=box, style=\"filled\", fillcolor=\"#879eac\", color=\"#FFF4CC\", fontcolor=\"#FFF4CC\", fontsize=12, label=\"HEAD\"]\n");
+    fprintf(dot_file, " tail_label [shape=box, style=\"filled\", fillcolor=\"#879eac\", color=\"#FFF4CC\", fontcolor=\"#FFF4CC\", fontsize=12, label=\"TAIL\"]\n");
+    fprintf(dot_file, " free_label [shape=box, style=\"filled\", fillcolor=\"#879eac\", color=\"#FFF4CC\", fontcolor=\"#FFF4CC\", fontsize=12, label=\"FREE\"]\n");
+
+    fprintf(dot_file, "{rank=same; %zd; head_label;}", list->next[0]);
+    fprintf(dot_file, "{rank=same; %zd; tail_label;}", list->prev[0]);
+    fprintf(dot_file, "{rank=same; %zd; free_label;}", list->free);
+
+    fprintf(dot_file, "head_label -> %zd [color=\"#FFF4CC\", penwidth=1, arrowsize=0.85, style=\"solid\", constraint=false, weight=0]\n", list->next[0]);
+    fprintf(dot_file, "tail_label -> %zd [color=\"#FFF4CC\", penwidth=1, arrowsize=0.85, style=\"solid\", constraint=false, weight=0]\n", list->prev[0]);
+    fprintf(dot_file, "free_label -> %zd [color=\"#FFF4CC\", penwidth=1, arrowsize=0.85, style=\"solid\", constraint=false, weight=0]\n", list->free);
+
+    fprintf(dot_file,"}\n");
 
     fprintf(dot_file,"}\n");
     fclose(dot_file);
