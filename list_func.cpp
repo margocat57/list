@@ -86,9 +86,11 @@ list_err_t list_verify(const list* list){
     CHECK_AND_RET_MISTAKE(list->free < 0 || list->free >= list->num_of_elem,
                         INCORR_FREE, "INCORRECT FREE VALUE\n");
 
-    CHECK_AND_RET_MISTAKE(list->data[0] != POISON, NULL_ELEM_CORRUPTED, "DATA[0] ELEMENT CORRUPTED\n");
+    CHECK_AND_RET_MISTAKE(list->data[0] != POISON, 
+                        NULL_ELEM_CORRUPTED, "DATA[0] ELEMENT CORRUPTED\n");
 
-    CHECK_AND_RET_MISTAKE(list->data[list->free] != POISON, FREE_ELEM_ISNT_POISON, "FREE ELEMENT ISN'T POISON\n");
+    CHECK_AND_RET_MISTAKE(list->data[list->free] != POISON, 
+                        FREE_ELEM_ISNT_POISON, "FREE ELEMENT ISN'T POISON\n");
 
     DEBUG(
     if(list->next[0] != 0 && list->prev[0] != 0){
