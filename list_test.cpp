@@ -39,10 +39,10 @@ void test_add_after_and_delete(list* lt1){
 
     // портим
     lt1->next[5] = 3;
-    list_dump_func(lt1, "After damaging l1", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After damaging 5 idx next(in array but incorr index)", __FILE__, __PRETTY_FUNCTION__, __LINE__);
 
     lt1->prev[5] = 9;
-    list_dump_func(lt1, "After damaging l1", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After damaging 5 idx prev(in array but incorr index)", __FILE__, __PRETTY_FUNCTION__, __LINE__);
 }
 
 void test_add_before_and_delete(list* lt1){
@@ -90,8 +90,8 @@ void test_add_before_and_delete(list* lt1){
 
     // портим
     lt1->next[5] = 57;
-    list_dump_func(lt1, "After damaging l1", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After damaging 5 idx next(out of arr)", __FILE__, __PRETTY_FUNCTION__, __LINE__);
 
     lt1->prev[5] = 75;
-    list_dump_func(lt1, "After damaging l1", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After damaging 5 idx prev(out of arr)", __FILE__, __PRETTY_FUNCTION__, __LINE__);
 }
