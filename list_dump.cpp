@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #define CHECK_AND_RET_DUMP(bad_condition, msg)\
     if(bad_condition){ \
@@ -21,22 +22,25 @@ static void generate_svg_file(const filenames_for_dump* dump);
 
 static void draw_table(const list* list, FILE* html_output);
 
-static void list_dump_html(const list* list, const char* img, const char* debug_msg, const char *file, const char *func, int line);
+static void list_dump_html(const list* list, const char* img, const char* debug_msg, const char *file, const char *func, int line, va_list args)  __attribute__ ((format (printf, 3, 7)));
 
-void list_dump_func(const list* list, const char* debug_msg, const char *file, const char *func,  int line){
+void list_dump_func(const list* list, const char* debug_msg, const char *file, const char *func,  int line, ...){
     filenames_for_dump dump = filename_ctor();
     generate_dot_file(list, dump.dot_filename);
     generate_svg_file(&dump);
     if(dump.svg_filename){
-        list_dump_html(list, dump.svg_filename, debug_msg, file, func, line);
+        va_list args = {};
+        va_start(args, line);
+        list_dump_html(list, dump.svg_filename, debug_msg, file, func, line, args);
         free(dump.svg_filename);
+        va_end(args);
     }
     if(dump.dot_filename){
         free(dump.dot_filename);
     }
 }
 
-static void list_dump_html(const list* list, const char* img, const char* debug_msg, const char *file, const char *func,  int line){
+static void list_dump_html(const list* list, const char* img, const char* debug_msg, const char *file, const char *func, int line, va_list args){
     static int launch_num = 0;
     FILE* html_output = NULL;
     if(launch_num == 0){
@@ -51,17 +55,14 @@ static void list_dump_html(const list* list, const char* img, const char* debug_
         fprintf(html_output, "<p style=\"font-size: 25px; \"> <span style=\"color: #98FB98;\">Green</span> - Ocuppied elememt\n");
         fprintf(html_output, "<p style=\"font-size: 25px; \"> <span style=\"color: #bb0d12;\">Red octagon</span> - index of elemet out of array\n");
         fprintf(html_output, "<p style=\"font-size: 25px; \"> <span style=\"color: #0000FF; font-weight: bold;\">Blue bold</span> or <span style=\"color: #FF4F00; font-weight: bold;\">orange bold</span> - for incorrect connections\n");
-        // fprintf(html_output, "<p style=\"font-size: 25px; \"> <span style=\"color: #660099; font-weight: bold;\">Purple bold frame</span> - for head element\n");
-        // fprintf(html_output, "<p style=\"font-size: 25px; \"> <span style=\"color: #FC0FC0; font-weight: bold;\">Pink bold frame</span> - for tail element\n");
-        // fprintf(html_output, "<p style=\"font-size: 25px; \"> <span style=\"color: #FFBA00; font-weight: bold;\">Yellow bold frame</span> - for free element\n");
     }
     else{
         html_output = fopen(LOG_FILE, "a+");
         CHECK_AND_RET_DUMP(!html_output, "Can't open html file\n");
     }
     fprintf(html_output, "<p style=\"font-size: 20px; \">Dump was called at %s function %s line %d\n", file, func, line);
-    fprintf(html_output, "<p style=\"font-size: 17.5px; color: #bb0d12;\">%s\n" ,debug_msg);
-    // fprintf(html_output, "<p style=\"font-size: 15px; \">%s\n" ,debug_msg);
+    fprintf(html_output, "<p style=\"font-size: 17.5px; color: #bb0d12;\">");
+    vfprintf(html_output, debug_msg, args);
     fprintf(html_output, "\n");
 
     draw_table(list, html_output);

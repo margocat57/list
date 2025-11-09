@@ -322,6 +322,82 @@ static list_err_t list_realloc(list* list, ssize_t elem){
     return NO_MISTAKE;
 }
 
+list_elem_t return_by_phys_idx(const list* list1, size_t idx){
+    if(idx == 0 || idx > list1->num_of_elem){
+        fprintf(stderr, "Index is not correct - can't work");
+        return POISON;
+    }
+    return list1->data[idx];
+}
+
+list_err_t list_linearize(list* list1){
+    list_err_t err = NO_MISTAKE;
+
+    err = list_verify(list1);
+    if(err) return err;
+
+    if(list1->size == 0){
+        list1->data[0]=POISON;
+        list1->next[0]=0;
+        list1->prev[0]=0;
+        return err;
+    }
+
+    list list_new = {};
+    if(list1->size < list1->num_of_elem / 4){
+        list list_new = list_ctor(list1->num_of_elem / 2);
+    }
+    else{
+        list list_new = list_ctor(list1->num_of_elem);
+    }
+    
+
+    ssize_t idx = list1->next[0];
+    list_new.data[0] = POISON;
+    for(ssize_t count = 1; count < list1->size + 1; count++){
+        if(idx != 0){
+            list_new.data[count] = list1->data[idx];
+        }
+        if(idx == 0){
+            list_new.data[count] = list1->data[list1->prev[0]];
+        }
+        idx = list1->next[idx];
+    }
+
+    for(ssize_t count = list1->size + 1; count < list1->num_of_elem; count++){
+        list_new.data[count] = POISON;
+    }
+
+    list1->free = list1->size + 1;
+    list_new.prev[0] = list1->size;
+    for(ssize_t idx1 = 0; idx1 < list1->num_of_elem; idx1++){
+        if(idx1 == list_new.prev[0] || idx1 == list1->num_of_elem - 1){
+            list_new.next[idx1] = 0;
+        }
+        else{
+            list_new.next[idx1] = idx1 + 1;
+        }
+    }
+
+    for(ssize_t idx2 = 1; idx2 < list1->num_of_elem; idx2++){
+        if(idx2 > list1->size){
+            list_new.prev[idx2] = -1;
+        }
+        else{
+            list_new.prev[idx2] = idx2 - 1;
+        }
+    }
+
+    list_dtor(list1);
+
+    list1->data = list_new.data;
+    list1->next = list_new.next;
+    list1->prev = list_new.prev;
+
+    err = list_verify(list1);
+    return err;
+}
+
 void list_elem_dtor(void* ptr, size_t len_bytes){
     if(ptr){
         memset(ptr, 0, len_bytes);

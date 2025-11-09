@@ -1,97 +1,122 @@
 #include "list_func.h"
 #include "list_dump.h"
 #include "list_test.h"
+#include "classic_list_dump.h"
 #include <stdio.h>
 
 void test_add_after_and_delete(list* lt1){
     add_elem_after_idx(lt1, 10, 0);
-    list_dump_func(lt1, "After adding 10 after 0 pos", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d after %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 10, 0);
     add_elem_after_idx(lt1, 20, 1);
-    list_dump_func(lt1, "After adding 20 after 1 pos", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d after %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 20, 1);
     add_elem_after_idx(lt1, 30, 2);
-    list_dump_func(lt1, "After adding 30 after 2 pos", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d after %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 30, 2);
     add_elem_after_idx(lt1, 40, 3);
-    list_dump_func(lt1, "After adding 40 after 3 pos", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d after %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 40, 3);
     add_elem_after_idx(lt1, 50, 4);
-    list_dump_func(lt1, "After adding 50 after 4 pos", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d after %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 50, 4);
     add_elem_after_idx(lt1, 60, 5);
-    list_dump_func(lt1, "After adding 60 after 5 pos", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d after %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 60, 5);
     add_elem_after_idx(lt1, 35, 3);
-    list_dump_func(lt1, "After adding 35 after 3 pos", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d after %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 35, 3);
     add_elem_after_idx(lt1, 36, 7);
-    list_dump_func(lt1, "After adding 36 after 7 pos", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d after %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 36, 7);
     add_elem_after_idx(lt1, 32, 3);
-    list_dump_func(lt1, "After adding 32 after 3 pos", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d after %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 32, 3);
     del_elem(lt1, 6);
-    list_dump_func(lt1, "After deleting 6st elem", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After deleting %dst elem", __FILE__, __PRETTY_FUNCTION__, __LINE__, 6);
     del_elem(lt1, 1);
-    list_dump_func(lt1, "After deleting 1st elem", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After deleting %dst elem", __FILE__, __PRETTY_FUNCTION__, __LINE__, 1);
     add_elem_after_idx(lt1, 11, 0);
-    list_dump_func(lt1, "After adding 11 after 0 pos", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d after %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 11, 0);
     add_elem_after_idx(lt1, 66, 5);
-    list_dump_func(lt1, "After adding 66 after 5 pos", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d after %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 66, 5);
     add_elem_after_idx(lt1, 70, 6);
-    list_dump_func(lt1, "After adding 70 after 6 pos", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d after %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 70, 6);
     del_elem(lt1, 4);
-    list_dump_func(lt1, "After deleting 4th elem", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After deleting %dth elem", __FILE__, __PRETTY_FUNCTION__, __LINE__, 4);
     del_elem(lt1, 7);
-    list_dump_func(lt1, "After deleting 7th elem", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After deleting %dth elem", __FILE__, __PRETTY_FUNCTION__, __LINE__, 7);
+    // list_linearize(lt1);
+    // list_dump_func(lt1, "After linearizing", __FILE__, __PRETTY_FUNCTION__, __LINE__);
 
     // портим
     lt1->next[5] = 3;
-    list_dump_func(lt1, "After damaging 5 idx next(in array but incorr index)", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After damaging %zd idx next(in array but incorr index)", __FILE__, __PRETTY_FUNCTION__, __LINE__, 5);
 
     lt1->prev[5] = 9;
-    list_dump_func(lt1, "After damaging 5 idx prev(in array but incorr index)", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After damaging %zd idx prev(in array but incorr index)", __FILE__, __PRETTY_FUNCTION__, __LINE__, 5);
 }
 
 void test_add_before_and_delete(list* lt1){
     add_elem_before_idx(lt1, 11, 0);
-    list_dump_func(lt1, "After adding 11 before 0 pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d before %d pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__, 11, 0);
     add_elem_before_idx(lt1, 21, 0);
-    list_dump_func(lt1, "After adding 21 before 0 pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d before %d pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__, 21, 0);
     add_elem_before_idx(lt1, 31, 0);
-    list_dump_func(lt1, "After adding 31 before 0 pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d before %d pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__, 31, 0);
     add_elem_before_idx(lt1, 41, 0);
-    list_dump_func(lt1, "After adding 41 before 0 pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d before %d pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__, 41, 0);
     add_elem_before_idx(lt1, 51, 0);
-    list_dump_func(lt1, "After adding 51 before 0 pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d before %d pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__, 51, 0);
     add_elem_before_idx(lt1, 61, 0);
-    list_dump_func(lt1, "After adding 61 before 0 pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d before %d pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__, 61, 0);
     add_elem_before_idx(lt1, 35, 4);
-    list_dump_func(lt1, "After adding 35 before 4 pos", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d before %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 35, 4);
     add_elem_before_idx(lt1, 36, 4);
-    list_dump_func(lt1, "After adding 36 before 4 pos", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d before %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 36, 4);
     add_elem_before_idx(lt1, 32, 7);
-    list_dump_func(lt1, "After adding 32 before 7 pos", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d before %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 32, 7);
     del_elem(lt1, 6);
-    list_dump_func(lt1, "After deleting 6st elem", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After deleting %dst elem", __FILE__, __PRETTY_FUNCTION__, __LINE__, 6);
     del_elem(lt1, 1);
-    list_dump_func(lt1, "After deleting 1st elem", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After deleting %dst elem", __FILE__, __PRETTY_FUNCTION__, __LINE__, 1);
     del_elem(lt1, 2);
-    list_dump_func(lt1, "After deleting 2st elem", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After deleting %dst elem", __FILE__, __PRETTY_FUNCTION__, __LINE__, 2);
     del_elem(lt1, 3);
-    list_dump_func(lt1, "After deleting 3st elem", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After deleting %dst elem", __FILE__, __PRETTY_FUNCTION__, __LINE__, 3);
     add_elem_before_idx(lt1, 31, 9);
-    list_dump_func(lt1, "After adding 31 before 9 pos", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d before %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 31, 9);
     add_elem_before_idx(lt1, 21, 3);
-    list_dump_func(lt1, "After adding 21 before 3 pos", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d before %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 21, 3);
     add_elem_before_idx(lt1, 11, 2);
-    list_dump_func(lt1, "After adding 11 before 2 pos", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d before %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 11, 2);
     add_elem_before_idx(lt1, 66, 0);
-    list_dump_func(lt1, "After adding 66 before 0 pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d before %d pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__, 66, 0);
     add_elem_before_idx(lt1, 70, 0);
-    list_dump_func(lt1, "After adding 70 before 0 pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After adding %d before %d pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__, 70, 0);
     del_elem(lt1, 4);
-    list_dump_func(lt1, "After deleting 4th elem", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After deleting %dth elem", __FILE__, __PRETTY_FUNCTION__, __LINE__, 4);
     del_elem(lt1, 7);
-    list_dump_func(lt1, "After deleting 7th elem", __FILE__, __PRETTY_FUNCTION__, __LINE__);
-
+    list_dump_func(lt1, "After deleting %dth elem", __FILE__, __PRETTY_FUNCTION__, __LINE__, 7);
+    // list_linearize(lt1);
+    // list_dump_func(lt1, "After linearizing", __FILE__, __PRETTY_FUNCTION__, __LINE__);
 
     // портим
     lt1->next[5] = 57;
-    list_dump_func(lt1, "After damaging 5 idx next(out of arr)", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After damaging %zd idx next(out of arr)", __FILE__, __PRETTY_FUNCTION__, __LINE__, 5);
 
     lt1->prev[5] = 75;
-    list_dump_func(lt1, "After damaging 5 idx prev(out of arr)", __FILE__, __PRETTY_FUNCTION__, __LINE__);
+    list_dump_func(lt1, "After damaging %zd idx prev(out of arr)", __FILE__, __PRETTY_FUNCTION__, __LINE__, 5);
+}
+
+void test_classic_list_add_before_idx(list_classic_head* head, list_classic* ltc){
+    list_add_elem_before_node(11, head->root, head);
+    list_dump_func_cl(head, "After adding %d before %d pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__, 11, 0);
+    list_add_elem_before_node(21, head->root, head);
+    list_dump_func_cl(head, "After adding %d before %d pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__, 21, 0);
+    list_add_elem_before_node(31, head->root, head);
+    list_dump_func_cl(head, "After adding %d before %d pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__, 31, 0);
+    list_add_elem_before_node(41, head->root, head);
+    list_dump_func_cl(head, "After adding %d before %d pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__, 41, 0);
+    list_add_elem_before_node(51, head->root, head);
+    list_dump_func_cl(head, "After adding %d before %d pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__, 51, 0);
+    list_add_elem_before_node(61, head->root, head);
+    list_dump_func_cl(head, "After adding %d before %d pos(end of list)", __FILE__, __PRETTY_FUNCTION__, __LINE__, 61, 0);
+    list_add_elem_before_node(35, head->root->next_cl->next_cl->next_cl->next_cl, head);
+    list_dump_func_cl(head, "After adding %d before %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 35, 4);
+    list_add_elem_after_node(36, head->root->next_cl->next_cl->next_cl->next_cl, head);
+    list_dump_func_cl(head, "After adding %d after %d pos", __FILE__, __PRETTY_FUNCTION__, __LINE__, 36, 4);
+    node_dtor(head->root->next_cl->next_cl, head);
+    list_dump_func_cl(head, "After del", __FILE__, __PRETTY_FUNCTION__, __LINE__);
 }
