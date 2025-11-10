@@ -344,13 +344,12 @@ list_err_t list_linearize(list* list1){
     }
 
     list list_new = {};
-    if(list1->size < list1->num_of_elem / 4){
-        list list_new = list_ctor(list1->num_of_elem / 2);
+    if(list1->size < list1->num_of_elem / 4 && list1->prev[0] < list1->num_of_elem / 4){
+        list_new = list_ctor(list1->num_of_elem / 2);
     }
     else{
-        list list_new = list_ctor(list1->num_of_elem);
+        list_new = list_ctor(list1->num_of_elem);
     }
-    
 
     ssize_t idx = list1->next[0];
     list_new.data[0] = POISON;
@@ -364,14 +363,14 @@ list_err_t list_linearize(list* list1){
         idx = list1->next[idx];
     }
 
-    for(ssize_t count = list1->size + 1; count < list1->num_of_elem; count++){
+    for(ssize_t count = list1->size + 1; count < list_new.num_of_elem; count++){
         list_new.data[count] = POISON;
     }
 
     list1->free = list1->size + 1;
     list_new.prev[0] = list1->size;
-    for(ssize_t idx1 = 0; idx1 < list1->num_of_elem; idx1++){
-        if(idx1 == list_new.prev[0] || idx1 == list1->num_of_elem - 1){
+    for(ssize_t idx1 = 0; idx1 < list_new.num_of_elem; idx1++){
+        if(idx1 == list_new.prev[0] || idx1 == list_new.num_of_elem - 1){
             list_new.next[idx1] = 0;
         }
         else{
@@ -379,7 +378,7 @@ list_err_t list_linearize(list* list1){
         }
     }
 
-    for(ssize_t idx2 = 1; idx2 < list1->num_of_elem; idx2++){
+    for(ssize_t idx2 = 1; idx2 < list_new.num_of_elem; idx2++){
         if(idx2 > list1->size){
             list_new.prev[idx2] = -1;
         }
@@ -393,6 +392,7 @@ list_err_t list_linearize(list* list1){
     list1->data = list_new.data;
     list1->next = list_new.next;
     list1->prev = list_new.prev;
+    list1->num_of_elem = list_new.num_of_elem;
 
     err = list_verify(list1);
     return err;

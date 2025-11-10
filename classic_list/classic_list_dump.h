@@ -2,7 +2,7 @@
 #define CL_LIST_DUMP_H
 #include <string.h>
 #include <stdio.h>
-#include "list_struct.h"
+#include "../list_struct.h"
 #include "classic_list.h"
 
 struct filenames_for_dump_cl{

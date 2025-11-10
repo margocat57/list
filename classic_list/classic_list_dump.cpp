@@ -1,4 +1,4 @@
-#include "list_struct.h"
+#include "../list_struct.h"
 #include "classic_list_dump.h"
 #include <sys/wait.h>
 #include <stdio.h>
