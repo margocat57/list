@@ -336,14 +336,13 @@ list_err_t list_linearize(list* list1){
     list new_list = list_ctor(list1->size + 1);
     size_t count = 0;
     size_t idx = 0;
-    do{
+    for(size_t count = 0; count < list1->size + 1; count++){
         new_list.data[count] = list1->data[idx];
         new_list.next[count] = count + 1;
         new_list.prev[count] = count - 1;
 
         idx = list1->next[idx];
-        count++;
-    }while(idx != 0);
+    }
 
     new_list.next[0] = 1;
     new_list.prev[0] = list1->size;
