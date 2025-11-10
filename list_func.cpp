@@ -206,10 +206,8 @@ list_err_t add_elem_before_idx(list* list, list_elem_t elem, ssize_t idx){
     }
 
     if(list->free == 0){
-        ssize_t old_num_of_elem = list->num_of_elem;
         err = list_realloc(list, list->num_of_elem * 2);
         if(err) return err;
-        list->free = old_num_of_elem;
     }
 
     ssize_t new_free = 0;
@@ -244,7 +242,6 @@ list_err_t add_elem_after_idx(list* list, list_elem_t elem, ssize_t idx){
     if(list->free == 0){
         err = list_realloc(list, list->num_of_elem * 2);
         if(err) return err;
-        list->free = idx + 1;
     }
 
     ssize_t new_free = 0;
@@ -288,7 +285,7 @@ list_err_t del_elem(list* list, ssize_t idx){
 }
 
 static list_err_t list_realloc(list* list, ssize_t elem){
-    ssize_t new_size = elem + 1;
+    ssize_t new_size = elem;
 
     list_elem_t* list_data_new = (list_elem_t*)realloc(list->data, sizeof(list_elem_t) * (size_t)new_size);
     if(!list_data_new){
@@ -317,6 +314,7 @@ static list_err_t list_realloc(list* list, ssize_t elem){
         list->prev[idx] = -1;
         list->data[idx] = POISON;
     }
+    list->free = list->num_of_elem;
     list->num_of_elem = new_size;
 
     return NO_MISTAKE;
@@ -332,71 +330,37 @@ list_elem_t return_by_phys_idx(const list* list1, size_t idx){
 
 list_err_t list_linearize(list* list1){
     list_err_t err = NO_MISTAKE;
-
     err = list_verify(list1);
     if(err) return err;
 
-    if(list1->size == 0){
-        list1->data[0]=POISON;
-        list1->next[0]=0;
-        list1->prev[0]=0;
-        return err;
-    }
+    list new_list = list_ctor(list1->size + 1);
+    size_t count = 0;
+    size_t idx = 0;
+    do{
+        new_list.data[count] = list1->data[idx];
+        new_list.next[count] = count + 1;
+        new_list.prev[count] = count - 1;
 
-    list list_new = {};
-    if(list1->size < list1->num_of_elem / 4 && list1->prev[0] < list1->num_of_elem / 4){
-        list_new = list_ctor(list1->num_of_elem / 2);
-    }
-    else{
-        list_new = list_ctor(list1->num_of_elem);
-    }
-
-    ssize_t idx = list1->next[0];
-    list_new.data[0] = POISON;
-    for(ssize_t count = 1; count < list1->size + 1; count++){
-        if(idx != 0){
-            list_new.data[count] = list1->data[idx];
-        }
-        if(idx == 0){
-            list_new.data[count] = list1->data[list1->prev[0]];
-        }
         idx = list1->next[idx];
-    }
+        count++;
+    }while(idx != 0);
 
-    for(ssize_t count = list1->size + 1; count < list_new.num_of_elem; count++){
-        list_new.data[count] = POISON;
-    }
-
-    list1->free = list1->size + 1;
-    list_new.prev[0] = list1->size;
-    for(ssize_t idx1 = 0; idx1 < list_new.num_of_elem; idx1++){
-        if(idx1 == list_new.prev[0] || idx1 == list_new.num_of_elem - 1){
-            list_new.next[idx1] = 0;
-        }
-        else{
-            list_new.next[idx1] = idx1 + 1;
-        }
-    }
-
-    for(ssize_t idx2 = 1; idx2 < list_new.num_of_elem; idx2++){
-        if(idx2 > list1->size){
-            list_new.prev[idx2] = -1;
-        }
-        else{
-            list_new.prev[idx2] = idx2 - 1;
-        }
-    }
+    new_list.next[0] = 1;
+    new_list.prev[0] = list1->size;
+    new_list.next[list1->size] = 0;
 
     list_dtor(list1);
-
-    list1->data = list_new.data;
-    list1->next = list_new.next;
-    list1->prev = list_new.prev;
-    list1->num_of_elem = list_new.num_of_elem;
+    list1->num_of_elem = new_list.num_of_elem;
+    list1->data = new_list.data;
+    list1->prev = new_list.prev;
+    list1->next = new_list.next;
+    list1->free = 0;
 
     err = list_verify(list1);
     return err;
 }
+
+
 
 void list_elem_dtor(void* ptr, size_t len_bytes){
     if(ptr){

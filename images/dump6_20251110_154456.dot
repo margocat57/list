@@ -1,0 +1,39 @@
+digraph G{
+ rankdir=LR;
+ graph [bgcolor="#FFFAFA", nodesep = 0.3, ranksep=0.8];
+ 0[shape="Mrecord", style="filled", fillcolor="#CD5C5C", color = "#000000", penwidth=1.0, label="phys idx = 0 | elem = -6666.00 | {prev = 6 | next = 1}"];
+ 1[shape="Mrecord", style="filled", fillcolor="#98FB98", color = "#000000", penwidth=1.0, label="phys idx = 1 | elem = 10.00 | {prev = 0 | next = 2}"];
+ 2[shape="Mrecord", style="filled", fillcolor="#98FB98", color = "#000000", penwidth=1.0, label="phys idx = 2 | elem = 20.00 | {prev = 1 | next = 3}"];
+ 3[shape="Mrecord", style="filled", fillcolor="#98FB98", color = "#000000", penwidth=1.0, label="phys idx = 3 | elem = 30.00 | {prev = 2 | next = 4}"];
+ 4[shape="Mrecord", style="filled", fillcolor="#98FB98", color = "#000000", penwidth=1.0, label="phys idx = 4 | elem = 40.00 | {prev = 3 | next = 5}"];
+ 5[shape="Mrecord", style="filled", fillcolor="#98FB98", color = "#000000", penwidth=1.0, label="phys idx = 5 | elem = 50.00 | {prev = 4 | next = 6}"];
+ 6[shape="Mrecord", style="filled", fillcolor="#98FB98", color = "#000000", penwidth=1.0, label="phys idx = 6 | elem = 60.00 | {prev = 5 | next = 0}"];
+ 7[shape="Mrecord", style="filled", fillcolor="#82898F", color = "#000000", penwidth=1.0, label="phys idx = 7 | elem = -6666.00 | {prev = -1 | next = 8} "];
+ 8[shape="Mrecord", style="filled", fillcolor="#82898F", color = "#000000", penwidth=1.0, label="phys idx = 8 | elem = -6666.00 | {prev = -1 | next = 9} "];
+ 9[shape="Mrecord", style="filled", fillcolor="#82898F", color = "#000000", penwidth=1.0, label="phys idx = 9 | elem = -6666.00 | {prev = -1 | next = 0} "];
+ head_label [shape="Mrecord", style="filled", fillcolor="#20B2AA", color="#000000", fontcolor="#000000", fontsize=12, label="HEAD"]
+ tail_label [shape="Mrecord", style="filled", fillcolor="#20B2AA", color="#000000", fontcolor="#000000", fontsize=12, label="TAIL"]
+ free_label [shape="Mrecord", style="filled", fillcolor="#20B2AA", color="#000000", fontcolor="#000000", fontsize=12, label="FREE"]
+head_label -> tail_label -> free_label[style="invis", weight=500]head_label -> 1 [color="#20B2AA", penwidth=1, arrowsize=0.85, style="solid"]
+tail_label -> 6 [color="#20B2AA", penwidth=1, arrowsize=0.85, style="solid"]
+free_label -> 7 [color="#20B2AA", penwidth=1, arrowsize=0.85, style="solid"]
+ 0 -> 1 [style="invis", weight=1000]
+ 1 -> 2 [style="invis", weight=1000]
+ 2 -> 3 [style="invis", weight=1000]
+ 3 -> 4 [style="invis", weight=1000]
+ 4 -> 5 [style="invis", weight=1000]
+ 5 -> 6 [style="invis", weight=1000]
+ 6 -> 7 [style="invis", weight=1000]
+ 7 -> 8 [style="invis", weight=1000]
+ 8 -> 9 [style="invis", weight=1000]
+ 0 -> 1 [color = "#000000", penwidth = 1, arrowsize = 0.85, dir=both, weight=0]
+ 1 -> 2 [color = "#000000", penwidth = 1, arrowsize = 0.85, dir=both, weight=0]
+ 2 -> 3 [color = "#000000", penwidth = 1, arrowsize = 0.85, dir=both, weight=0]
+ 3 -> 4 [color = "#000000", penwidth = 1, arrowsize = 0.85, dir=both, weight=0]
+ 4 -> 5 [color = "#000000", penwidth = 1, arrowsize = 0.85, dir=both, weight=0]
+ 5 -> 6 [color = "#000000", penwidth = 1, arrowsize = 0.85, dir=both, weight=0]
+ 6 -> 0 [color = "#000000", penwidth = 1, arrowsize = 0.85, dir=both, weight=0]
+ 7 -> 8 [color = "#FF8C00", penwidth = 1, arrowsize = 0.85, weight=0]
+ 8 -> 9 [color = "#FF8C00", penwidth = 1, arrowsize = 0.85, weight=0]
+ 9 -> 0 [color = "#FF8C00", penwidth = 1, arrowsize = 0.85, weight=0]
+}

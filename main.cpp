@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 int main(){
-    list l1 = list_ctor(50); 
+    list l1 = list_ctor(5); 
     // имя логфайла - глобальная характеристика программы
     test_add_after_and_delete(&l1);
 

@@ -19,7 +19,7 @@ list_err_t add_elem_after_idx(list* list, list_elem_t elem, ssize_t idx);
 
 list_elem_t return_by_phys_idx(const list* list1, size_t idx);
 
-list_err_t list_linearize(list* list);
+list_err_t list_linearize(list* list1);
 
 list_err_t del_elem(list* list, ssize_t idx);
 
