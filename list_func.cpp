@@ -338,15 +338,11 @@ list_err_t list_linearize(list* list1){
     size_t idx = 0;
     for(size_t count = 0; count < list1->size + 1; count++){
         new_list.data[count] = list1->data[idx];
-        new_list.next[count] = count + 1;
-        new_list.prev[count] = count - 1;
+        new_list.next[count] = (count < list1->size) ? count + 1 : 0;
+        new_list.prev[count] = (count == 0) ? list1->size : count - 1;
 
         idx = list1->next[idx];
     }
-
-    new_list.next[0] = 1;
-    new_list.prev[0] = list1->size;
-    new_list.next[list1->size] = 0;
 
     list_dtor(list1);
     list1->num_of_elem = new_list.num_of_elem;
